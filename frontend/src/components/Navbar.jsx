@@ -6,6 +6,9 @@ const NAV_LINKS = [
   { path: '/', label: 'Dashboard', icon: '🏠' },
   { path: '/children', label: 'Children', icon: '👶' },
   { path: '/appointments', label: 'Appointments', icon: '📅' },
+  { path: '/ai-advisor', label: 'AI Advisor', icon: '🤖' },
+  { path: '/ai-tools', label: 'AI Tools', icon: '🧠' },
+  { path: '/ai-results', label: 'AI History', icon: '📜' },
   { path: '/expenses', label: 'Expenses', icon: '💰' },
   { path: '/shopping_lists', label: 'Shopping', icon: '🛒' },
 ];

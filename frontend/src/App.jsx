@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import FeaturePage from './pages/FeaturePage';
 import AIAdvisorPage from './pages/AIAdvisorPage';
+import AIToolsPage from './pages/AIToolsPage';
+import AIResultsPage from './pages/AIResultsPage';
 import ProfilePage from './pages/ProfilePage';
 
 function ProtectedRoute({ children }) {
@@ -76,6 +78,26 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <AIAdvisorPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-tools"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AIToolsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-results"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AIResultsPage />
             </AppLayout>
           </ProtectedRoute>
         }
