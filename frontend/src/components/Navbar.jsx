@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { path: '/ai-results', label: 'AI History', icon: '📜' },
   { path: '/expenses', label: 'Expenses', icon: '💰' },
   { path: '/shopping_lists', label: 'Shopping', icon: '🛒' },
+  { path: '/custom-views', label: 'Parent Views', icon: '👨‍👩‍👧' },
 ];
 
 export default function Navbar() {

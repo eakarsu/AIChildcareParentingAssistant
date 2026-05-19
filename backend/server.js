@@ -44,35 +44,15 @@ app.get('/api/health', (req, res) => {
 // Mount all routes
 app.use('/api', routes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found.' });
-});
+// === Custom Views (Parent Views) — mounted BEFORE 404 ===
+app.use('/api/custom-views', require('./routes/customViews'));
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error.' });
-});
+// Other gap / extension routes — also BEFORE 404
+app.use('/api/parent-coach', require('./routes/parentCoachAgent'));
+app.use('/api/evidence-lit-rag', require('./routes/evidenceLitRag'));
+app.use('/api/daily-log-anomaly', require('./routes/dailyLogAnomaly'));
+app.use('/api/pediatric-network', require('./routes/pediatricNetworkSaas'));
 
-
-app.use('/api/parent-coach', require('./routes/parentCoachAgent')); // apply pass 6 — audit custom suggestion
-
-app.use('/api/evidence-lit-rag', require('./routes/evidenceLitRag')); // apply pass 6 — audit custom suggestion
-
-app.use('/api/daily-log-anomaly', require('./routes/dailyLogAnomaly')); // apply pass 6 — audit custom suggestion
-
-app.use('/api/pediatric-network', require('./routes/pediatricNetworkSaas')); // apply pass 6 — audit custom suggestion
-app.listen(PORT, () => {
-  console.log(`Childcare Assistant API running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-  console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
-});
-
-module.exports = app;
-
-
-// === Batch 01 Gaps & Frontend Mounts ===
 app.use('/api/gap-only-4-ai-endpoints-narrow-coverage', require('./routes/gap_only_4_ai_endpoints_narrow_coverage'));
 app.use('/api/gap-no-ai-age-stage-specific-developmental-milestone-t', require('./routes/gap_no_ai_age_stage_specific_developmental_milestone_t'));
 app.use('/api/gap-no-ai-sleep-feeding-log-analyzer-for-patterns', require('./routes/gap_no_ai_sleep_feeding_log_analyzer_for_patterns'));
@@ -84,3 +64,22 @@ app.use('/api/gap-no-multi-caregiver-shared-account-co-parent-sync', require('./
 app.use('/api/gap-no-pediatrician-handoff-pdf-generator', require('./routes/gap_no_pediatrician_handoff_pdf_generator'));
 app.use('/api/gap-no-content-library-articles-videos-with-curation', require('./routes/gap_no_content_library_articles_videos_with_curation'));
 app.use('/api/gap-no-subscription-billing-for-premium-tier', require('./routes/gap_no_subscription_billing_for_premium_tier'));
+
+// 404 handler — MUST come after all routes
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found.' });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error.' });
+});
+
+app.listen(PORT, () => {
+  console.log(`Childcare Assistant API running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
+});
+
+module.exports = app;
