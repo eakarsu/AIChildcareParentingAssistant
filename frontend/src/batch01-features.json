@@ -1,0 +1,111 @@
+{
+  "project": "AIChildcareParentingAssistant",
+  "marker": "// === Batch 01 Gaps & Frontend Mounts ===",
+  "features": [
+    {
+      "slug": "agentic-parent-coach-delivering-weekly-age-appropr",
+      "component": "AgenticParentCoachDeliveringWeeklyAgeApproprPage",
+      "label": "Agentic parent coach delivering weekly age-appropriate plans",
+      "endpoint": "/api/cf-agentic-parent-coach-delivering-weekly-age-appropr",
+      "kind": "cfs"
+    },
+    {
+      "slug": "rag-over-evidence-based-parenting-literature-aap-n",
+      "component": "RagOverEvidenceBasedParentingLiteratureAapNPage",
+      "label": "RAG over evidence-based parenting literature (AAP, NICHD) with safe-content filters",
+      "endpoint": "/api/cf-rag-over-evidence-based-parenting-literature-aap-n",
+      "kind": "cfs"
+    },
+    {
+      "slug": "real-time-daily-log-anomaly-detection-sleep-regres",
+      "component": "RealTimeDailyLogAnomalyDetectionSleepRegresPage",
+      "label": "Real-time daily-log anomaly detection (sleep regression, growth concern) with pediatrician referral",
+      "endpoint": "/api/cf-real-time-daily-log-anomaly-detection-sleep-regres",
+      "kind": "cfs"
+    },
+    {
+      "slug": "white-label-deployment-for-hospital-pediatric-netw",
+      "component": "WhiteLabelDeploymentForHospitalPediatricNetwPage",
+      "label": "White-label deployment for hospital pediatric networks and EAP providers",
+      "endpoint": "/api/cf-white-label-deployment-for-hospital-pediatric-netw",
+      "kind": "cfs"
+    },
+    {
+      "slug": "only-4-ai-endpoints-narrow-coverage",
+      "component": "Only4AiEndpointsNarrowCoveragePage",
+      "label": "Only 4 AI endpoints \u2014 narrow coverage",
+      "endpoint": "/api/gap-only-4-ai-endpoints-narrow-coverage",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-ai-age-stage-specific-developmental-milestone-t",
+      "component": "NoAiAgeStageSpecificDevelopmentalMilestoneTPage",
+      "label": "No AI age-stage-specific developmental milestone tracker",
+      "endpoint": "/api/gap-no-ai-age-stage-specific-developmental-milestone-t",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-ai-sleep-feeding-log-analyzer-for-patterns",
+      "component": "NoAiSleepFeedingLogAnalyzerForPatternsPage",
+      "label": "No AI sleep/feeding-log analyzer for patterns",
+      "endpoint": "/api/gap-no-ai-sleep-feeding-log-analyzer-for-patterns",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-ai-behavior-incident-coach-with-safe-conversati",
+      "component": "NoAiBehaviorIncidentCoachWithSafeConversatiPage",
+      "label": "No AI behavior-incident coach with safe-conversation guardrails",
+      "endpoint": "/api/gap-no-ai-behavior-incident-coach-with-safe-conversati",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-ai-photo-based-growth-chart-analyzer",
+      "component": "NoAiPhotoBasedGrowthChartAnalyzerPage",
+      "label": "No AI photo-based growth-chart analyzer",
+      "endpoint": "/api/gap-no-ai-photo-based-growth-chart-analyzer",
+      "kind": "gap"
+    },
+    {
+      "slug": "reminders-routes-exist-but-no-sms-push-delivery-ch",
+      "component": "RemindersRoutesExistButNoSmsPushDeliveryChPage",
+      "label": "Reminders routes exist but no SMS/push delivery channel",
+      "endpoint": "/api/gap-reminders-routes-exist-but-no-sms-push-delivery-ch",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-webhook-outbound-api",
+      "component": "NoWebhookOutboundApiPage",
+      "label": "No webhook outbound API",
+      "endpoint": "/api/gap-no-webhook-outbound-api",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-multi-caregiver-shared-account-co-parent-sync",
+      "component": "NoMultiCaregiverSharedAccountCoParentSyncPage",
+      "label": "No multi-caregiver shared account / co-parent sync",
+      "endpoint": "/api/gap-no-multi-caregiver-shared-account-co-parent-sync",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-pediatrician-handoff-pdf-generator",
+      "component": "NoPediatricianHandoffPdfGeneratorPage",
+      "label": "No pediatrician-handoff PDF generator",
+      "endpoint": "/api/gap-no-pediatrician-handoff-pdf-generator",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-content-library-articles-videos-with-curation",
+      "component": "NoContentLibraryArticlesVideosWithCurationPage",
+      "label": "No content library (articles, videos) with curation",
+      "endpoint": "/api/gap-no-content-library-articles-videos-with-curation",
+      "kind": "gap"
+    },
+    {
+      "slug": "no-subscription-billing-for-premium-tier",
+      "component": "NoSubscriptionBillingForPremiumTierPage",
+      "label": "No subscription billing for premium tier",
+      "endpoint": "/api/gap-no-subscription-billing-for-premium-tier",
+      "kind": "gap"
+    }
+  ]
+}

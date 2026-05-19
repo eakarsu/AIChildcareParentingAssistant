@@ -15,22 +15,29 @@ function createCrudRoutes(tableName, columns, options = {}) {
   const router = express.Router();
   const { required = [], searchFields = [], userScoped = false } = options;
 
-  // GET / - List all items
+  // GET / - List all items (supports ?page=&limit= pagination)
   router.get('/', auth, async (req, res) => {
     try {
-      const { child_id, search, sort_by, order } = req.query;
-      let query = `SELECT * FROM ${tableName} WHERE 1=1`;
+      const { child_id, search, sort_by, order, page, limit } = req.query;
+
+      // Pagination
+      const usePagination = page !== undefined || limit !== undefined;
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const limitNum = Math.min(200, Math.max(1, parseInt(limit) || 50));
+      const offset = (pageNum - 1) * limitNum;
+
+      let baseWhere = `FROM ${tableName} WHERE 1=1`;
       const params = [];
       let paramIndex = 1;
 
       if (userScoped) {
-        query += ` AND user_id = $${paramIndex}`;
+        baseWhere += ` AND user_id = $${paramIndex}`;
         params.push(req.user.id);
         paramIndex++;
       }
 
       if (child_id && !userScoped) {
-        query += ` AND child_id = $${paramIndex}`;
+        baseWhere += ` AND child_id = $${paramIndex}`;
         params.push(child_id);
         paramIndex++;
       }
@@ -40,14 +47,36 @@ function createCrudRoutes(tableName, columns, options = {}) {
           params.push(`%${search}%`);
           return `${field} ILIKE $${paramIndex++}`;
         });
-        query += ` AND (${searchConditions.join(' OR ')})`;
+        baseWhere += ` AND (${searchConditions.join(' OR ')})`;
       }
 
       const sortColumn = sort_by && columns.includes(sort_by) ? sort_by : 'created_at';
       const sortOrder = order === 'asc' ? 'ASC' : 'DESC';
-      query += ` ORDER BY ${sortColumn} ${sortOrder}`;
+
+      let query = `SELECT * ${baseWhere} ORDER BY ${sortColumn} ${sortOrder}`;
+
+      // Apply pagination
+      if (usePagination) {
+        params.push(limitNum, offset);
+        query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      }
 
       const result = await pool.query(query, params);
+
+      // If pagination requested, also return total count
+      if (usePagination) {
+        const countResult = await pool.query(`SELECT COUNT(*) ${baseWhere}`, params.slice(0, params.length - 2));
+        const total = parseInt(countResult.rows[0].count);
+        return res.json({
+          data: result.rows,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            total_pages: Math.ceil(total / limitNum),
+          },
+        });
+      }
       res.json(result.rows);
     } catch (err) {
       console.error(`GET /${tableName} error:`, err);

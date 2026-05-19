@@ -89,12 +89,39 @@ export async function deleteItem(endpoint, id) {
   });
 }
 
-export async function getAIInsight(feature, context, question) {
+export async function getAIInsight(feature, context, question, conversation_id) {
   return apiCall('/ai/insight', {
     method: 'POST',
-    body: JSON.stringify({ feature, context, question }),
+    body: JSON.stringify({ feature, context, question, conversation_id }),
   });
 }
+
+// New AI feature endpoints
+export const aiFeatures = {
+  milestoneComparison: (data) => apiCall('/ai/milestone-comparison', { method: 'POST', body: JSON.stringify(data) }),
+  sleepOptimizer: (data) => apiCall('/ai/sleep-optimizer', { method: 'POST', body: JSON.stringify(data) }),
+  nutritionAdvisor: (data) => apiCall('/ai/nutrition-advisor', { method: 'POST', body: JSON.stringify(data) }),
+  behaviorAnalyzer: (data) => apiCall('/ai/behavior-analyzer', { method: 'POST', body: JSON.stringify(data) }),
+  illnessTracker: (data) => apiCall('/ai/illness-tracker', { method: 'POST', body: JSON.stringify(data) }),
+  stressMonitor: (data) => apiCall('/ai/stress-monitor', { method: 'POST', body: JSON.stringify(data) }),
+  screenTimeManager: (data) => apiCall('/ai/screen-time-manager', { method: 'POST', body: JSON.stringify(data) }),
+  siblingHarmony: (data) => apiCall('/ai/sibling-harmony', { method: 'POST', body: JSON.stringify(data) }),
+  healthTrend: (data) => apiCall('/ai/health-trend', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// AI conversations
+export const aiConversations = {
+  list: (params = {}) => fetchItems('/ai/conversations', params),
+  create: (data) => apiCall('/ai/conversations', { method: 'POST', body: JSON.stringify(data) }),
+  message: (id, data) => apiCall(`/ai/conversations/${id}/message`, { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// AI results history
+export const aiResults = {
+  list: (params = {}) => fetchItems('/ai-results', params),
+  get: (id) => apiCall(`/ai-results/${id}`),
+  remove: (id) => apiCall(`/ai-results/${id}`, { method: 'DELETE' }),
+};
 
 export async function exportCSV(tableName) {
   const token = getToken();

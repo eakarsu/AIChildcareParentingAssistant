@@ -1,18 +1,28 @@
 const express = require('express');
 const authRoutes = require('./auth');
 const aiRoutes = require('./ai');
+const aiNewRoutes = require('./aiNew');
 const createCrudRoutes = require('./crud');
 const auth = require('../middleware/auth');
 const exportRoutes = require('./export');
 const profileRoutes = require('./profile');
+const reminderRoutes = require('./reminders');
+const aiResultsRoutes = require('./aiResults');
 
 const router = express.Router();
 
 // Auth routes (public + protected)
 router.use('/auth', authRoutes);
 
-// AI routes (protected)
+// AI routes (protected) - existing + new endpoints
 router.use('/ai', auth, aiRoutes);
+router.use('/ai', auth, aiNewRoutes);
+
+// AI results history (protected, paginated)
+router.use('/ai-results', aiResultsRoutes);
+
+// Reminder routes (protected)
+router.use('/reminders', auth, reminderRoutes);
 
 // Children
 router.use(

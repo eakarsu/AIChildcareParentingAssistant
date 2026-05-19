@@ -7,7 +7,10 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import FeaturePage from './pages/FeaturePage';
 import AIAdvisorPage from './pages/AIAdvisorPage';
+import AIToolsPage from './pages/AIToolsPage';
+import AIResultsPage from './pages/AIResultsPage';
 import ProfilePage from './pages/ProfilePage';
+import CustomViewsPage from './pages/CustomViewsPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -81,11 +84,41 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/ai-tools"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AIToolsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-results"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AIResultsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/profile"
         element={
           <ProtectedRoute>
             <AppLayout>
               <ProfilePage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/custom-views"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <CustomViewsPage />
             </AppLayout>
           </ProtectedRoute>
         }
