@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { path: '/expenses', label: 'Expenses', icon: '💰' },
   { path: '/shopping_lists', label: 'Shopping', icon: '🛒' },
   { path: '/custom-views', label: 'Parent Views', icon: '👨‍👩‍👧' },
+  { path: '/screen-time-balance', label: 'Screen Time', icon: '📱' },
 ];
 
 export default function Navbar() {

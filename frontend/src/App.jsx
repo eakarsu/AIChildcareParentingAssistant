@@ -11,6 +11,12 @@ import AIToolsPage from './pages/AIToolsPage';
 import AIResultsPage from './pages/AIResultsPage';
 import ProfilePage from './pages/ProfilePage';
 import CustomViewsPage from './pages/CustomViewsPage';
+import ScreenTimeBalance from './pages/ScreenTimeBalance';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -55,6 +61,10 @@ function AppRoutes() {
 
   return (
     <Routes>
+        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
       <Route
         path="/login"
         element={user ? <Navigate to="/" replace /> : <Login />}
@@ -119,6 +129,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <CustomViewsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/screen-time-balance"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ScreenTimeBalance />
             </AppLayout>
           </ProtectedRoute>
         }

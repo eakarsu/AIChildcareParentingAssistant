@@ -52,6 +52,7 @@ app.use('/api/parent-coach', require('./routes/parentCoachAgent'));
 app.use('/api/evidence-lit-rag', require('./routes/evidenceLitRag'));
 app.use('/api/daily-log-anomaly', require('./routes/dailyLogAnomaly'));
 app.use('/api/pediatric-network', require('./routes/pediatricNetworkSaas'));
+app.use('/api/screen-time-balance', require('./routes/screenTimeBalance'));
 
 app.use('/api/gap-only-4-ai-endpoints-narrow-coverage', require('./routes/gap_only_4_ai_endpoints_narrow_coverage'));
 app.use('/api/gap-no-ai-age-stage-specific-developmental-milestone-t', require('./routes/gap_no_ai_age_stage_specific_developmental_milestone_t'));
