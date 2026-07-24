@@ -7,6 +7,12 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+function requireDemoPassword() {
+  const password = process.env.DEMO_PASSWORD || process.env.SEED_DEMO_PASSWORD || process.env.DEMO_SEED_PASSWORD || '';
+  if (password.length < 12 || password.length > 1024) throw new Error('DEMO_PASSWORD must contain 12-1024 characters');
+  return password;
+}
+
 async function seed() {
   const client = await pool.connect();
   try {
@@ -357,13 +363,13 @@ async function seed() {
 
     // ─── DEMO USER ───
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('password123', salt);
+    const hash = await bcrypt.hash(requireDemoPassword(), salt);
     const userResult = await client.query(
       `INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id`,
       ['Sarah Johnson', 'demo@childcare.com', hash]
     );
     const userId = userResult.rows[0].id;
-    console.log('Created demo user (demo@childcare.com / password123)');
+    console.log('Demo login users provisioned from the local environment.');
 
     // ─── CHILDREN ───
     const childResult = await client.query(
@@ -813,7 +819,7 @@ async function seed() {
     console.log('\n========================================');
     console.log('  SEED COMPLETED SUCCESSFULLY!');
     console.log('========================================');
-    console.log('  Demo User: demo@childcare.com / password123');
+    console.log('Demo login users provisioned from the local environment.');
     console.log('  Children: Emma (3yo) & Liam (1yo)');
     console.log('  Milestones: 20');
     console.log('  Activities: 20');

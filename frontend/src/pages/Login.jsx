@@ -28,8 +28,8 @@ export default function Login() {
   };
 
   const handleDemoLogin = () => {
-    setEmail('demo@childcare.com');
-    setPassword('password123');
+    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
+    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
     setTimeout(() => {
       const form = document.getElementById('login-form');
       if (form) form.requestSubmit();
