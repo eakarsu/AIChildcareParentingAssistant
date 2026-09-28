@@ -30,10 +30,6 @@ export default function Login() {
   const handleDemoLogin = () => {
     setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
     setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
-    setTimeout(() => {
-      const form = document.getElementById('login-form');
-      if (form) form.requestSubmit();
-    }, 100);
   };
 
   return (
@@ -98,7 +94,7 @@ export default function Login() {
           onClick={handleDemoLogin}
           disabled={loading}
         >
-          Demo Login
+          Auto Fill Demo Credentials
         </button>
 
         <p className="login-footer-text">
