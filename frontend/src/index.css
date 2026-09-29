@@ -1607,3 +1607,130 @@ select.form-input {
   color: var(--text);
   word-break: break-word;
 }
+
+/* ---------- Global search (sidebar) ---------- */
+.global-search {
+  position: relative;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.global-search-input {
+  width: 100%;
+}
+
+.global-search-input .search-input {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.global-search-results {
+  position: absolute;
+  top: calc(100% - 0.2rem);
+  left: 0.5rem;
+  right: 0.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 60;
+  padding: 0.35rem;
+}
+
+.global-search-status {
+  padding: 0.6rem 0.7rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.global-search-error {
+  color: var(--danger);
+}
+
+.global-search-group + .global-search-group {
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--border-light);
+  padding-top: 0.35rem;
+}
+
+.global-search-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.global-search-group-count {
+  margin-left: auto;
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+  font-size: 0.68rem;
+}
+
+.global-search-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.45rem 0.55rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.global-search-item:hover,
+.global-search-item:focus {
+  background: var(--primary-bg);
+  outline: none;
+}
+
+.global-search-item-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.global-search-item-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Reports page ---------- */
+.report-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.report-definition {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  line-height: 1.5;
+}

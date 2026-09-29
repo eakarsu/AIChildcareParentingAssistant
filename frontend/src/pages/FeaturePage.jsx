@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { getFeatureByPath } from '../config/features';
 import { fetchItems, createItem, updateItem, deleteItem, getAIInsight, fetchItems as fetchList, exportCSV } from '../api';
 import AIOutput from '../components/AIOutput';
@@ -7,6 +7,8 @@ import AIOutput from '../components/AIOutput';
 export default function FeaturePage() {
   const { feature: featureParam } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const recordId = searchParams.get('record');
   const feature = getFeatureByPath(featureParam);
 
   const [items, setItems] = useState([]);
@@ -73,6 +75,18 @@ export default function FeaturePage() {
         .catch(() => {});
     }
   }, [feature]);
+
+  // Deep link from global search: /<feature>?record=<id> opens that record.
+  useEffect(() => {
+    if (!recordId || items.length === 0) return;
+    const match = items.find((item) => String(item.id) === String(recordId));
+    if (match) {
+      setSelectedItem(match);
+      setShowDetail(true);
+      setShowForm(false);
+      setAiResult(null);
+    }
+  }, [recordId, items]);
 
   if (!feature || feature.isSpecial) return null;
 

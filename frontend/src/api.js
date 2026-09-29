@@ -96,6 +96,45 @@ export async function getAIInsight(feature, context, question, conversation_id) 
   });
 }
 
+// Download the pediatrician handoff PDF (or receive JSON when pdfkit is absent).
+export async function downloadPediatricianHandoffPdf(data) {
+  const token = getToken();
+  const response = await fetch(`${BASE_URL}/ai/pediatrician-handoff-pdf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (response.status === 401) {
+    removeToken();
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Request failed with status ${response.status}`);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pediatrician_handoff_child_${data && data.child_id ? data.child_id : 'summary'}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+  return { downloaded: true, content_type: contentType, advisory: true, note: 'PDF downloaded.' };
+}
+
 // New AI feature endpoints
 export const aiFeatures = {
   milestoneComparison: (data) => apiCall('/ai/milestone-comparison', { method: 'POST', body: JSON.stringify(data) }),
@@ -107,6 +146,12 @@ export const aiFeatures = {
   screenTimeManager: (data) => apiCall('/ai/screen-time-manager', { method: 'POST', body: JSON.stringify(data) }),
   siblingHarmony: (data) => apiCall('/ai/sibling-harmony', { method: 'POST', body: JSON.stringify(data) }),
   healthTrend: (data) => apiCall('/ai/health-trend', { method: 'POST', body: JSON.stringify(data) }),
+  handoffSummary: (data) => apiCall('/ai/handoff-summary', { method: 'POST', body: JSON.stringify(data) }),
+  milestoneGapAdvisor: (data) => apiCall('/ai/milestone-gap-advisor', { method: 'POST', body: JSON.stringify(data) }),
+  sleepFeedingAnalyzer: (data) => apiCall('/ai/sleep-feeding-analyzer', { method: 'POST', body: JSON.stringify(data) }),
+  behaviorCoach: (data) => apiCall('/ai/behavior-coach', { method: 'POST', body: JSON.stringify(data) }),
+  growthChartAnalyzer: (data) => apiCall('/ai/growth-chart-analyzer', { method: 'POST', body: JSON.stringify(data) }),
+  pediatricianHandoffPdf: (data) => downloadPediatricianHandoffPdf(data),
 };
 
 // AI conversations
@@ -145,3 +190,83 @@ export async function exportCSV(tableName) {
   document.body.removeChild(a);
   window.URL.revokeObjectURL(url);
 }
+
+// ─── Deterministic reports (computed from real rows server-side) ─────────────
+
+export function getGrowthReport(childId) {
+  return apiCall(`/reports/growth/${childId}`);
+}
+
+export function getSleepReport(childId, days = 30) {
+  return apiCall(`/reports/sleep/${childId}?days=${days}`);
+}
+
+export function getFeedingReport(childId, days = 30) {
+  return apiCall(`/reports/feeding/${childId}?days=${days}`);
+}
+
+export function getExpenseSummary(params = {}) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  return apiCall(`/reports/expenses/summary${query ? `?${query}` : ''}`);
+}
+
+export function getReportsOverview() {
+  return apiCall('/reports/overview');
+}
+
+// ─── Global search across the authenticated user's records ───────────────────
+
+export function globalSearch(query) {
+  return apiCall(`/search?q=${encodeURIComponent(query)}`);
+}
+
+/** Download the authenticated account's full data export (json|csv). */
+export async function downloadAccountExport(format = 'json') {
+  const token = getToken();
+  const response = await fetch(`${BASE_URL}/account/export?format=${format}`, {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  if (!response.ok) throw new Error('Failed to export account data.');
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `childcare-export.${format}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
+
+/** What an export or deletion would include. */
+export async function getAccountSummary() {
+  return apiCall('/account/summary');
+}
+
+/** Delete the account and every owned record (requires the exact email). */
+export async function deleteAccount(confirmEmail) {
+  return apiCall('/account', { method: 'DELETE', body: JSON.stringify({ confirm: confirmEmail }) });
+}
+
+// ─── Caregiver sharing & audit trail ─────────────────────────────────────────
+export const sharing = {
+  list: (childId) => apiCall(`/sharing/${childId}`),
+  invite: (childId, data) => apiCall(`/sharing/${childId}/invite`, { method: 'POST', body: JSON.stringify(data) }),
+  accept: (token) => apiCall('/sharing/accept', { method: 'POST', body: JSON.stringify({ token }) }),
+  update: (childId, userId, data) => apiCall(`/sharing/${childId}/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  remove: (childId, userId) => apiCall(`/sharing/${childId}/${userId}`, { method: 'DELETE' }),
+  audit: (childId) => apiCall(`/sharing/${childId}/audit`),
+};
+
+// ─── Billing ─────────────────────────────────────────────────────────────────
+export const billing = {
+  status: () => apiCall('/billing/status'),
+  plans: () => apiCall('/billing/plans'),
+  checkout: (plan) => apiCall('/billing/checkout', { method: 'POST', body: JSON.stringify({ plan }) }),
+};

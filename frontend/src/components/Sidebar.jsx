@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SIDEBAR_SECTIONS } from '../config/features';
+import GlobalSearch from './GlobalSearch';
 
 const COLLAPSE_KEY = 'childcare:sidebar:collapsed';
 
@@ -77,6 +78,8 @@ export default function Sidebar() {
             {collapsed ? '»' : '«'}
           </button>
         </div>
+
+        {user && !collapsed && <GlobalSearch />}
 
         <nav className="sidebar-nav">
           {SIDEBAR_SECTIONS.map((section) => (

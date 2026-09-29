@@ -11,8 +11,12 @@ import AIAdvisorPage from './pages/AIAdvisorPage';
 import AIToolsPage from './pages/AIToolsPage';
 import AIResultsPage from './pages/AIResultsPage';
 import ProfilePage from './pages/ProfilePage';
+import PrivacyPage from './pages/PrivacyPage';
 import CustomViewsPage from './pages/CustomViewsPage';
 import ScreenTimeBalance from './pages/ScreenTimeBalance';
+import ReportsPage from './pages/ReportsPage';
+import SharingPage from './pages/SharingPage';
+import BillingPage from './pages/BillingPage';
 
 import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
 import CodexOperationsFeature from './pages/CodexOperationsFeature';
@@ -120,6 +124,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/privacy"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <PrivacyPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
       <Route path="/insights/timeline" element={<ProtectedRoute><AppLayout><TimelineView /></AppLayout></ProtectedRoute>} />
       <Route path="/codex/custom-viz" element={<ProtectedRoute><AppLayout><CodexCustomVizFeature /></AppLayout></ProtectedRoute>} />
       <Route path="/codex/operations" element={<ProtectedRoute><AppLayout><CodexOperationsFeature /></AppLayout></ProtectedRoute>} />
@@ -139,6 +153,36 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <ScreenTimeBalance />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ReportsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sharing"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <SharingPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/billing"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <BillingPage />
             </AppLayout>
           </ProtectedRoute>
         }

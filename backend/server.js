@@ -33,8 +33,12 @@ app.use(
   })
 );
 
-// Body parser
-app.use(express.json({ limit: '10mb' }));
+// Body parser. The verify hook captures the raw body so the Stripe webhook can
+// validate its signature.
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => { req.rawBody = buf; },
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check
@@ -42,8 +46,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Dedicated childcare AI routes. Mounted BEFORE the core /api router so the
+// existing /api/ai/* routers cannot intercept these paths (which would run the
+// shared aiLimiter multiple times per request). Route paths are distinct from
+// the existing /api/ai/* endpoints, so nothing else is shadowed.
+app.use('/api/ai', require('./routes/aiChildcare'));
+
 // Mount all routes
 app.use('/api', routes);
+
+// Data portability and account lifecycle (export / delete)
+app.use('/api/account', require('./routes/account'));
 
 // === Custom Views (Parent Views) — mounted BEFORE 404 ===
 app.use('/api/custom-views', require('./routes/customViews'));
@@ -56,6 +69,13 @@ app.use('/api/daily-log-anomaly', require('./routes/dailyLogAnomaly'));
 app.use('/api/pediatric-network', require('./routes/pediatricNetworkSaas'));
 app.use('/api/screen-time-balance', require('./routes/screenTimeBalance'));
 
+// Deterministic reports + global search — BEFORE 404
+app.use('/api/reports', require('./routes/reports'));
+app.use('/api/search', require('./routes/search'));
+
+// Caregiver sharing (with audit trail) and billing — mounted BEFORE 404
+app.use('/api/sharing', require('./routes/sharing'));
+app.use('/api/billing', require('./routes/billing'));
 
 // 404 handler — MUST come after all routes
 app.use((req, res) => {
