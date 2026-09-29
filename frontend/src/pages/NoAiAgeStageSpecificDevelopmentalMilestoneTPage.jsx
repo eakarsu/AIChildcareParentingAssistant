@@ -33,10 +33,19 @@ export default function NoAiAgeStageSpecificDevelopmentalMilestoneTPage() {
     setBusy(true); setErr(''); setResult(null);
     try {
       const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('token') : '';
-      const r = await fetch('/api/gap-no-ai-age-stage-specific-developmental-milestone-t/run', {
+      let payload;
+      try {
+        const parsed = JSON.parse(input);
+        if (Array.isArray(parsed)) payload = { milestones_achieved: parsed };
+        else if (parsed && typeof parsed === 'object') payload = parsed;
+        else throw new Error('bad');
+      } catch {
+        throw new Error('Provide JSON such as {"child_age_months":18,"milestones_achieved":["..."]}');
+      }
+      const r = await fetch('/api/ai/milestone-gap-advisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify(payload),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'Request failed');
@@ -54,7 +63,7 @@ export default function NoAiAgeStageSpecificDevelopmentalMilestoneTPage() {
     <div style={{ padding: 24, color: '#e5e7eb', maxWidth: 980 }}>
       <h2 style={{ marginTop: 0 }}>No AI age-stage-specific developmental milestone tracker</h2>
       <p style={{ color: '#9ca3af', fontSize: 13 }}>
-        Endpoint: <code>/api/gap-no-ai-age-stage-specific-developmental-milestone-t/run</code>. Submit context as text; the backend calls OpenRouter and returns structured JSON.
+        Endpoint: <code>/api/ai/milestone-gap-advisor</code>. Submit JSON such as <code>{'{'}"child_age_months":18,"milestones_achieved":["..."]{'}'}</code>; the backend returns expectations, gaps, next steps and pediatrician questions.
       </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
           {sampleRequests.map((sample) => (

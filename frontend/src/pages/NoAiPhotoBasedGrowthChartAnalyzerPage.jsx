@@ -33,10 +33,19 @@ export default function NoAiPhotoBasedGrowthChartAnalyzerPage() {
     setBusy(true); setErr(''); setResult(null);
     try {
       const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('token') : '';
-      const r = await fetch('/api/gap-no-ai-photo-based-growth-chart-analyzer/run', {
+      let payload;
+      try {
+        const parsed = JSON.parse(input);
+        payload = Array.isArray(parsed)
+          ? { measurements: parsed }
+          : (parsed && typeof parsed === 'object' ? parsed : { measurements: [] });
+      } catch {
+        throw new Error('Provide JSON such as {"measurements":[{"date":"2024-01-01","height_cm":80,"weight_kg":10}]}');
+      }
+      const r = await fetch('/api/ai/growth-chart-analyzer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify(payload),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'Request failed');
@@ -54,7 +63,7 @@ export default function NoAiPhotoBasedGrowthChartAnalyzerPage() {
     <div style={{ padding: 24, color: '#e5e7eb', maxWidth: 980 }}>
       <h2 style={{ marginTop: 0 }}>No AI photo-based growth-chart analyzer</h2>
       <p style={{ color: '#9ca3af', fontSize: 13 }}>
-        Endpoint: <code>/api/gap-no-ai-photo-based-growth-chart-analyzer/run</code>. Submit context as text; the backend calls OpenRouter and returns structured JSON.
+        Endpoint: <code>/api/ai/growth-chart-analyzer</code>. Submit JSON such as <code>{'{"measurements":[{"date":"2024-01-01","height_cm":80,"weight_kg":10}]}'}</code>; the backend summarises the series deterministically and adds an AI interpretation (no invented percentiles).
       </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
           {sampleRequests.map((sample) => (

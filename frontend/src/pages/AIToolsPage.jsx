@@ -84,6 +84,60 @@ const TOOLS = [
       { name: 'vaccinations', label: 'Vaccinations JSON (optional)', type: 'json', optional: true },
     ],
   },
+  {
+    key: 'handoffSummary',
+    label: 'Sitter Handoff Summary',
+    description: 'Deterministic child records plus an AI "what a sitter needs to know today" brief.',
+    fields: [
+      { name: 'child_id', label: 'Child ID', type: 'number' },
+      { name: 'timeframe_hours', label: 'Timeframe (hours, optional)', type: 'number', optional: true },
+    ],
+  },
+  {
+    key: 'milestoneGapAdvisor',
+    label: 'Milestone Gap Advisor',
+    description: 'Age-appropriate expectations, gaps, next steps and pediatrician questions.',
+    fields: [
+      { name: 'child_age_months', label: 'Child Age (months)', type: 'number' },
+      { name: 'milestones_achieved', label: 'Milestones Achieved (comma-separated)', type: 'list' },
+    ],
+  },
+  {
+    key: 'sleepFeedingAnalyzer',
+    label: 'Sleep & Feeding Analyzer',
+    description: 'Deterministic sleep/feeding aggregates plus an AI explanation (facts are computed in code).',
+    fields: [
+      { name: 'sleep_logs', label: 'Sleep logs JSON array (optional)', type: 'json', optional: true },
+      { name: 'feeding_logs', label: 'Feeding logs JSON array (optional)', type: 'json', optional: true },
+    ],
+  },
+  {
+    key: 'behaviorCoach',
+    label: 'Behavior Coach (Safe)',
+    description: 'Safe, de-escalation-focused guidance. Punitive or unsafe advice is refused.',
+    fields: [
+      { name: 'incidents', label: 'Incidents JSON array', type: 'json' },
+      { name: 'triggers', label: 'Triggers JSON array (optional)', type: 'json', optional: true },
+    ],
+  },
+  {
+    key: 'growthChartAnalyzer',
+    label: 'Growth Chart Analyzer',
+    description: 'Deterministic growth-series summary; no percentiles unless a reference curve is supplied.',
+    fields: [
+      { name: 'child_id', label: 'Child ID (optional)', type: 'number', optional: true },
+      { name: 'measurements', label: 'Measurements JSON array', type: 'json' },
+    ],
+  },
+  {
+    key: 'pediatricianHandoffPdf',
+    label: 'Pediatrician Handoff PDF',
+    description: 'Deterministic record summary as a downloadable PDF (or JSON if PDF is unavailable).',
+    fields: [
+      { name: 'child_id', label: 'Child ID', type: 'number' },
+      { name: 'since', label: 'Since date (optional, YYYY-MM-DD)', type: 'text', optional: true },
+    ],
+  },
 ];
 
 export default function AIToolsPage() {
@@ -108,7 +162,7 @@ export default function AIToolsPage() {
           catch { throw new Error(`Invalid JSON in ${f.label}`); }
         } else if (f.type === 'list' && v) {
           payload[f.name] = String(v).split(',').map(s => s.trim()).filter(Boolean);
-        } else if (f.type === 'number' && v !== undefined) {
+        } else if (f.type === 'number' && v !== undefined && v !== '') {
           payload[f.name] = Number(v);
         } else if (v) {
           payload[f.name] = v;

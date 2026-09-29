@@ -33,10 +33,19 @@ export default function NoAiBehaviorIncidentCoachWithSafeConversatiPage() {
     setBusy(true); setErr(''); setResult(null);
     try {
       const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('token') : '';
-      const r = await fetch('/api/gap-no-ai-behavior-incident-coach-with-safe-conversati/run', {
+      let payload;
+      try {
+        const parsed = JSON.parse(input);
+        payload = Array.isArray(parsed)
+          ? { incidents: parsed }
+          : (parsed && typeof parsed === 'object' ? parsed : { incidents: [] });
+      } catch {
+        throw new Error('Provide JSON such as {"incidents":[...],"triggers":[...]}');
+      }
+      const r = await fetch('/api/ai/behavior-coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify(payload),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'Request failed');
@@ -54,7 +63,7 @@ export default function NoAiBehaviorIncidentCoachWithSafeConversatiPage() {
     <div style={{ padding: 24, color: '#e5e7eb', maxWidth: 980 }}>
       <h2 style={{ marginTop: 0 }}>No AI behavior-incident coach with safe-conversation guardrails</h2>
       <p style={{ color: '#9ca3af', fontSize: 13 }}>
-        Endpoint: <code>/api/gap-no-ai-behavior-incident-coach-with-safe-conversati/run</code>. Submit context as text; the backend calls OpenRouter and returns structured JSON.
+        Endpoint: <code>/api/ai/behavior-coach</code>. Submit JSON such as <code>{'{'}"incidents":[...],"triggers":[...]{'}'}</code>; the backend returns safe, de-escalation-focused guidance and refuses punitive advice.
       </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
           {sampleRequests.map((sample) => (
