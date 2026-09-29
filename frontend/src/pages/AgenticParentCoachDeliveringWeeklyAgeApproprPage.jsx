@@ -1,97 +1,49 @@
-// === Batch 01 Gaps & Frontend Mounts ===
-// Feature: Agentic parent coach delivering weekly age-appropriate plans
-import KeyValueResult from '../components/KeyValueResult';
-import React, { useState } from 'react';
+// === Agentic Parent Coach ===
+import React from 'react';
+import AIFeatureForm from '../components/AIFeatureForm';
 
+const TOOL = {
+  "key": "parentCoach",
+  "label": "Weekly Plan Request",
+  "description": "Describe the child and the week you want planned. The coach returns a summary, actions and risks as strict JSON.",
+  "fields": [
+    {
+      "name": "child_age_months",
+      "label": "Child age (months)",
+      "type": "number",
+      "example": "24"
+    },
+    {
+      "name": "goals",
+      "label": "Goals for the week (comma-separated)",
+      "type": "list",
+      "example": "more outdoor play, consistent bedtime, fewer tantrums at transitions"
+    },
+    {
+      "name": "constraints",
+      "label": "Constraints (comma-separated)",
+      "type": "list",
+      "optional": true,
+      "example": "both parents work until 5pm, no screen time before dinner"
+    },
+    {
+      "name": "notes",
+      "label": "Anything else the coach should know",
+      "type": "text",
+      "optional": true,
+      "example": "Recently started daycare and is more tired in the evenings."
+    }
+  ]
+};
 
 export default function AgenticParentCoachDeliveringWeeklyAgeApproprPage() {
-  const [input, setInput] = useState('');
-
-  const sampleRequests = [
-      {
-          "label": "Scenario",
-          "value": "Run Agentic parent coach delivering weekly age-appropriate plans for a realistic customer case.\nContext: a team needs a practical recommendation based on incomplete operating data.\nGoal: identify the best action, key risks, missing information, and expected business impact.\nReturn: summary, prioritized action plan, assumptions, and follow-up questions."
-      },
-      {
-          "label": "Data sample",
-          "value": "Analyze this Agentic parent coach delivering weekly age-appropriate plans data sample.\nInput records:\n- Record 1: urgent, customer impact high, owner unassigned\n- Record 2: medium priority, blocked by missing data\n- Record 3: recurring issue, automation opportunity\nReturn structured findings, anomalies, recommendations, and confidence."
-      },
-      {
-          "label": "Executive review",
-          "value": "Prepare an executive review for Agentic parent coach delivering weekly age-appropriate plans.\nAudience: business owner, operations lead, and implementation team.\nInclude impact, risk, estimated effort, decision points, and a concise next-step plan."
-      }
-  ];
-
-  const applySampleRequest = (value) => {
-    setInput(value);
-    setResult(null);
-  };
-  const [result, setResult] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-
-  const run = async () => {
-    setBusy(true); setErr(''); setResult(null);
-    try {
-      const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('token') : '';
-      const r = await fetch('/api/cf-agentic-parent-coach-delivering-weekly-age-appropr/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ input }),
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || 'Request failed');
-      setResult(data);
-    } catch (e) {
-      const data = e?.response?.data;
-      if (data?.missing) setErr(`AI unavailable — set ${data.missing} in .env`);
-      else setErr(data?.error || e.message || 'Failed');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
-    <div style={{ padding: 24, color: '#e5e7eb', maxWidth: 980 }}>
-      <h2 style={{ marginTop: 0 }}>Agentic parent coach delivering weekly age-appropriate plans</h2>
-      <p style={{ color: '#9ca3af', fontSize: 13 }}>
-        Endpoint: <code>/api/cf-agentic-parent-coach-delivering-weekly-age-appropr/run</code>. Submit context as text; the backend calls OpenRouter and returns structured JSON.
-      </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-          {sampleRequests.map((sample) => (
-            <button
-              key={sample.label}
-              type="button"
-              onClick={() => applySampleRequest(sample.value)}
-              style={{ padding: '6px 10px', background: '#eef2ff', color: '#1e3a8a', border: '1px solid #c7d2fe', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
-            >
-              {sample.label}
-            </button>
-          ))}
-        </div>
-
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter context, JSON, or a free-form prompt..."
-        rows={8}
-        style={{ width: '100%', padding: 10, background: '#111827', color: '#f3f4f6', border: '1px solid #374151', borderRadius: 6, fontFamily: 'monospace' }}
-      />
-      <div style={{ marginTop: 10 }}>
-        <button
-          onClick={run}
-          disabled={busy || !input.trim()}
-          style={{ padding: '8px 16px', background: busy ? '#374151' : '#10b981', color: '#fff', border: 'none', borderRadius: 6, cursor: busy ? 'wait' : 'pointer' }}
-        >
-          {busy ? 'Running...' : 'Run'}
-        </button>
-      </div>
-      {err && <div style={{ marginTop: 12, padding: 10, background: '#7f1d1d', borderRadius: 6, color: '#fee2e2' }}>{err}</div>}
-      {result && (
-        <div style={{ marginTop: 16 }}>
-          <KeyValueResult result={result} />
-        </div>
-      )}
-    </div>
+    <AIFeatureForm
+      title="Agentic Parent Coach"
+      intro="Weekly, age-appropriate plans generated from the context you provide."
+      tool={TOOL}
+      endpoint="/api/parent-coach/run"
+      resultMode="kv"
+    />
   );
 }

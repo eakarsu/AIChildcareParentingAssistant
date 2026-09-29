@@ -1872,3 +1872,16 @@ select.form-input {
   padding: 0.875rem;
   background: var(--bg-white, #fff);
 }
+
+/* ---------- Shared AI feature form ---------- */
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+.form-textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.825rem;
+  line-height: 1.5;
+  resize: vertical;
+}

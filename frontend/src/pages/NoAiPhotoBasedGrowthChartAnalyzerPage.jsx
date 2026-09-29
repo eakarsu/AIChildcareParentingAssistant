@@ -1,106 +1,44 @@
-// === Batch 01 Gaps & Frontend Mounts ===
-// Feature: No AI photo-based growth-chart analyzer
-import AIResultView from '../components/AIResultView';
-import React, { useState } from 'react';
+// === AI photo-based growth-chart analyzer ===
+// Deterministic growth-series summary; percentiles are only reported when a
+// reference curve is supplied, otherwise the response says so.
+import React from 'react';
+import AIFeatureForm from '../components/AIFeatureForm';
 
+const TOOL = {
+  key: 'growthChartAnalyzer',
+  label: 'Growth Chart Analyzer',
+  description:
+    'Summarises a growth series (first/last, change, approximate rate per month) in code, then adds an AI interpretation. No percentile is invented without a reference curve.',
+  fields: [
+    {
+      name: 'measurements',
+      label: 'Measurements (JSON array)',
+      type: 'json',
+      example: JSON.stringify([
+        { date: '2026-03-01', height_cm: 78, weight_kg: 10.2, head_circumference_cm: 46 },
+        { date: '2026-06-01', height_cm: 80.5, weight_kg: 10.9, head_circumference_cm: 46.6 },
+        { date: '2026-09-01', height_cm: 83, weight_kg: 11.4, head_circumference_cm: 47.1 },
+      ], null, 2),
+    },
+    {
+      name: 'child_id',
+      label: 'Child ID',
+      type: 'number',
+      optional: true,
+      example: '1',
+      hint: 'Optional. Read the child’s recorded measurements directly instead of the JSON above.',
+    },
+  ],
+};
 
 export default function NoAiPhotoBasedGrowthChartAnalyzerPage() {
-  const [input, setInput] = useState('');
-
-  const sampleRequests = [
-      {
-          "label": "Scenario",
-          "value": "Run No AI photo-based growth-chart analyzer for a realistic customer case.\nContext: a team needs a practical recommendation based on incomplete operating data.\nGoal: identify the best action, key risks, missing information, and expected business impact.\nReturn: summary, prioritized action plan, assumptions, and follow-up questions."
-      },
-      {
-          "label": "Data sample",
-          "value": "Analyze this No AI photo-based growth-chart analyzer data sample.\nInput records:\n- Record 1: urgent, customer impact high, owner unassigned\n- Record 2: medium priority, blocked by missing data\n- Record 3: recurring issue, automation opportunity\nReturn structured findings, anomalies, recommendations, and confidence."
-      },
-      {
-          "label": "Executive review",
-          "value": "Prepare an executive review for No AI photo-based growth-chart analyzer.\nAudience: business owner, operations lead, and implementation team.\nInclude impact, risk, estimated effort, decision points, and a concise next-step plan."
-      }
-  ];
-
-  const applySampleRequest = (value) => {
-    setInput(value);
-    setResult(null);
-  };
-  const [result, setResult] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-
-  const run = async () => {
-    setBusy(true); setErr(''); setResult(null);
-    try {
-      const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('token') : '';
-      let payload;
-      try {
-        const parsed = JSON.parse(input);
-        payload = Array.isArray(parsed)
-          ? { measurements: parsed }
-          : (parsed && typeof parsed === 'object' ? parsed : { measurements: [] });
-      } catch {
-        throw new Error('Provide JSON such as {"measurements":[{"date":"2024-01-01","height_cm":80,"weight_kg":10}]}');
-      }
-      const r = await fetch('/api/ai/growth-chart-analyzer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify(payload),
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || 'Request failed');
-      setResult(data);
-    } catch (e) {
-      const data = e?.response?.data;
-      if (data?.missing) setErr(`AI unavailable — set ${data.missing} in .env`);
-      else setErr(data?.error || e.message || 'Failed');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
-    <div style={{ padding: 24, color: '#e5e7eb', maxWidth: 980 }}>
-      <h2 style={{ marginTop: 0 }}>No AI photo-based growth-chart analyzer</h2>
-      <p style={{ color: '#9ca3af', fontSize: 13 }}>
-        Endpoint: <code>/api/ai/growth-chart-analyzer</code>. Submit JSON such as <code>{'{"measurements":[{"date":"2024-01-01","height_cm":80,"weight_kg":10}]}'}</code>; the backend summarises the series deterministically and adds an AI interpretation (no invented percentiles).
-      </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-          {sampleRequests.map((sample) => (
-            <button
-              key={sample.label}
-              type="button"
-              onClick={() => applySampleRequest(sample.value)}
-              style={{ padding: '6px 10px', background: '#eef2ff', color: '#1e3a8a', border: '1px solid #c7d2fe', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
-            >
-              {sample.label}
-            </button>
-          ))}
-        </div>
-
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter context, JSON, or a free-form prompt..."
-        rows={8}
-        style={{ width: '100%', padding: 10, background: '#111827', color: '#f3f4f6', border: '1px solid #374151', borderRadius: 6, fontFamily: 'monospace' }}
-      />
-      <div style={{ marginTop: 10 }}>
-        <button
-          onClick={run}
-          disabled={busy || !input.trim()}
-          style={{ padding: '8px 16px', background: busy ? '#374151' : '#10b981', color: '#fff', border: 'none', borderRadius: 6, cursor: busy ? 'wait' : 'pointer' }}
-        >
-          {busy ? 'Running...' : 'Run'}
-        </button>
-      </div>
-      {err && <div style={{ marginTop: 12, padding: 10, background: '#7f1d1d', borderRadius: 6, color: '#fee2e2' }}>{err}</div>}
-      {result && (
-        <div style={{ marginTop: 16 }}>
-          <AIResultView result={result} />
-        </div>
-      )}
-    </div>
+    <AIFeatureForm
+      title="Growth Chart Analyzer"
+      intro="Growth trends computed from real measurements, with the arithmetic shown as facts."
+      tool={TOOL}
+      endpoint="/api/ai/growth-chart-analyzer"
+      resultMode="ai"
+    />
   );
 }

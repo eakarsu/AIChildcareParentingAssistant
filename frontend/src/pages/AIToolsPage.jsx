@@ -269,17 +269,21 @@ export default function AIToolsPage() {
         <p className="page-subtitle">Specialized AI features for childcare insights.</p>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
         {TOOLS.map(t => (
           <button
             key={t.key}
             className={`btn ${activeTool === t.key ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => selectTool(t.key)}
+            title={`Load ${t.label} and fill its example values`}
           >
             {t.label}
           </button>
         ))}
       </div>
+      <p className="text-muted" style={{ fontSize: '0.8rem', marginBottom: 24 }}>
+        Each button loads that feature and fills every field with example values — including the optional ones.
+      </p>
 
       <div className="card" style={{ marginBottom: 24 }}>
         <div className="tool-header">

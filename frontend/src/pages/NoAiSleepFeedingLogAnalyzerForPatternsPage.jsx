@@ -1,106 +1,45 @@
-// === Batch 01 Gaps & Frontend Mounts ===
-// Feature: No AI sleep/feeding-log analyzer for patterns
-import AIResultView from '../components/AIResultView';
-import React, { useState } from 'react';
+// === AI sleep/feeding-log analyzer ===
+// Deterministic aggregates computed in code, with an AI explanation on top.
+import React from 'react';
+import AIFeatureForm from '../components/AIFeatureForm';
 
+const TOOL = {
+  key: 'sleepFeedingAnalyzer',
+  label: 'Sleep & Feeding Analyzer',
+  description:
+    'Aggregates your sleep and feeding logs (counts, averages, trends) and adds an AI explanation. The numbers are computed from the logs you supply, never invented.',
+  fields: [
+    {
+      name: 'sleep_logs',
+      label: 'Sleep logs (JSON array)',
+      type: 'json',
+      example: JSON.stringify([
+        { date: '2026-09-20', sleep_start: '20:00', sleep_end: '06:00', quality: 'Good' },
+        { date: '2026-09-21', sleep_start: '20:30', sleep_end: '05:30', quality: 'Fair' },
+        { date: '2026-09-22', sleep_start: '19:45', sleep_end: '06:15', quality: 'Good' },
+      ], null, 2),
+    },
+    {
+      name: 'feeding_logs',
+      label: 'Feeding logs (JSON array)',
+      type: 'json',
+      example: JSON.stringify([
+        { meal: 'Breakfast', foods: ['oatmeal', 'banana'], calories: 200 },
+        { meal: 'Lunch', foods: ['chicken', 'rice'], calories: 300 },
+        { meal: 'Snack', foods: ['yogurt'], calories: 120 },
+      ], null, 2),
+    },
+  ],
+};
 
 export default function NoAiSleepFeedingLogAnalyzerForPatternsPage() {
-  const [input, setInput] = useState('');
-
-  const sampleRequests = [
-      {
-          "label": "Scenario",
-          "value": "Run No AI sleep/feeding-log analyzer for patterns for a realistic customer case.\nContext: a team needs a practical recommendation based on incomplete operating data.\nGoal: identify the best action, key risks, missing information, and expected business impact.\nReturn: summary, prioritized action plan, assumptions, and follow-up questions."
-      },
-      {
-          "label": "Data sample",
-          "value": "Analyze this No AI sleep/feeding-log analyzer for patterns data sample.\nInput records:\n- Record 1: urgent, customer impact high, owner unassigned\n- Record 2: medium priority, blocked by missing data\n- Record 3: recurring issue, automation opportunity\nReturn structured findings, anomalies, recommendations, and confidence."
-      },
-      {
-          "label": "Executive review",
-          "value": "Prepare an executive review for No AI sleep/feeding-log analyzer for patterns.\nAudience: business owner, operations lead, and implementation team.\nInclude impact, risk, estimated effort, decision points, and a concise next-step plan."
-      }
-  ];
-
-  const applySampleRequest = (value) => {
-    setInput(value);
-    setResult(null);
-  };
-  const [result, setResult] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-
-  const run = async () => {
-    setBusy(true); setErr(''); setResult(null);
-    try {
-      const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('token') : '';
-      let payload;
-      try {
-        const parsed = JSON.parse(input);
-        payload = Array.isArray(parsed)
-          ? { sleep_logs: parsed }
-          : (parsed && typeof parsed === 'object' ? parsed : { sleep_logs: [] });
-      } catch {
-        throw new Error('Provide JSON such as {"sleep_logs":[...],"feeding_logs":[...]}');
-      }
-      const r = await fetch('/api/ai/sleep-feeding-analyzer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify(payload),
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || 'Request failed');
-      setResult(data);
-    } catch (e) {
-      const data = e?.response?.data;
-      if (data?.missing) setErr(`AI unavailable — set ${data.missing} in .env`);
-      else setErr(data?.error || e.message || 'Failed');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
-    <div style={{ padding: 24, color: '#e5e7eb', maxWidth: 980 }}>
-      <h2 style={{ marginTop: 0 }}>No AI sleep/feeding-log analyzer for patterns</h2>
-      <p style={{ color: '#9ca3af', fontSize: 13 }}>
-        Endpoint: <code>/api/ai/sleep-feeding-analyzer</code>. Submit JSON such as <code>{'{'}"sleep_logs":[...],"feeding_logs":[...]{'}'}</code>; the backend computes deterministic aggregates and adds an AI explanation.
-      </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-          {sampleRequests.map((sample) => (
-            <button
-              key={sample.label}
-              type="button"
-              onClick={() => applySampleRequest(sample.value)}
-              style={{ padding: '6px 10px', background: '#eef2ff', color: '#1e3a8a', border: '1px solid #c7d2fe', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
-            >
-              {sample.label}
-            </button>
-          ))}
-        </div>
-
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter context, JSON, or a free-form prompt..."
-        rows={8}
-        style={{ width: '100%', padding: 10, background: '#111827', color: '#f3f4f6', border: '1px solid #374151', borderRadius: 6, fontFamily: 'monospace' }}
-      />
-      <div style={{ marginTop: 10 }}>
-        <button
-          onClick={run}
-          disabled={busy || !input.trim()}
-          style={{ padding: '8px 16px', background: busy ? '#374151' : '#10b981', color: '#fff', border: 'none', borderRadius: 6, cursor: busy ? 'wait' : 'pointer' }}
-        >
-          {busy ? 'Running...' : 'Run'}
-        </button>
-      </div>
-      {err && <div style={{ marginTop: 12, padding: 10, background: '#7f1d1d', borderRadius: 6, color: '#fee2e2' }}>{err}</div>}
-      {result && (
-        <div style={{ marginTop: 16 }}>
-          <AIResultView result={result} />
-        </div>
-      )}
-    </div>
+    <AIFeatureForm
+      title="Sleep & Feeding Analyzer"
+      intro="Patterns across sleep and feeding logs, with the underlying numbers shown as facts."
+      tool={TOOL}
+      endpoint="/api/ai/sleep-feeding-analyzer"
+      resultMode="ai"
+    />
   );
 }
