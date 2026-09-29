@@ -51,7 +51,7 @@ router.post('/insight', async (req, res) => {
     userMessage += `Question: ${question}`;
 
     const messages = [...priorMessages, { role: 'user', content: userMessage }];
-    const data = await callOpenRouter(SYSTEM_PROMPT, messages, { max_tokens: 1024 });
+    const data = await callOpenRouter(SYSTEM_PROMPT, messages, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const responseText = data.choices[0].message.content + MEDICAL_DISCLAIMER;
 
     const output = {
@@ -193,7 +193,7 @@ router.post('/conversations/:id/message', async (req, res) => {
       { role: 'user', content },
     ];
 
-    const data = await callOpenRouter(SYSTEM_PROMPT, messages, { max_tokens: 1024 });
+    const data = await callOpenRouter(SYSTEM_PROMPT, messages, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const assistantContent = data.choices[0].message.content + MEDICAL_DISCLAIMER;
 
     const savedMsg = await pool.query(

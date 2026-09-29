@@ -304,7 +304,7 @@ router.post('/handoff-summary', ...guards(), async (req, res) => {
       `DETERMINISTIC FACTS:\n${compactJson(deterministic, 2500)}\n\n` +
       `RECORDS:\n${compactJson(data)}`;
 
-    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: 1500 });
+    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
 
     let summary;
     let details = null;
@@ -396,7 +396,7 @@ router.post('/milestone-gap-advisor', ...guards(), async (req, res) => {
       'expected (string[] age-appropriate expectations), on_track (string[]), gaps (string[]), ' +
       'next_steps (string[]), pediatrician_questions (string[]), when_to_consult (string[]).';
 
-    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: 1500 });
+    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const resolved = resolveAnalysis(ai, 'milestone-gap-advisor');
 
     const output = {
@@ -562,7 +562,7 @@ router.post('/sleep-feeding-analyzer', ...guards(), async (req, res) => {
       `FACTS:\n${compactJson(facts, 4000)}\n\n` +
       `RAW LOGS (context only):\n${compactJson({ sleep_logs: sleepLogs || [], feeding_logs: feedingLogs || [] }, 4000)}`;
 
-    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: 1500 });
+    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const resolved = resolveAnalysis(ai, 'sleep-feeding-analyzer');
 
     const output = {
@@ -634,7 +634,7 @@ router.post('/behavior-coach', ...guards(), async (req, res) => {
       `FACTS:\n${compactJson(facts, 2000)}\n\n` +
       `INCIDENTS:\n${compactJson(incidents, 4000)}`;
 
-    const ai = await askModel(BEHAVIOR_SYSTEM_PROMPT, userPrompt, { max_tokens: 1500 });
+    const ai = await askModel(BEHAVIOR_SYSTEM_PROMPT, userPrompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const resolved = resolveAnalysis(ai, 'behavior-coach');
 
     const output = {
@@ -763,7 +763,7 @@ router.post('/growth-chart-analyzer', ...guards(), async (req, res) => {
       `FACTS:\n${compactJson(facts, 4000)}\n\n` +
       `SERIES:\n${compactJson(rows, 4000)}`;
 
-    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: 1500 });
+    const ai = await askModel(SYSTEM_PROMPT, userPrompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const resolved = resolveAnalysis(ai, 'growth-chart-analyzer');
 
     const output = {
@@ -872,7 +872,7 @@ router.post('/pediatrician-handoff-pdf', ...guards(), async (req, res) => {
       'based only on the supplied record summary. Do not invent numbers, results, or diagnoses. ' +
       'Return strict JSON with keys: questions_for_pediatrician (string[]), topics_to_discuss (string[]).\n\n' +
       `RECORD SUMMARY:\n${compactJson(summary, 5000)}`;
-    const ai = await askModel(SYSTEM_PROMPT, prompt, { max_tokens: 800 });
+    const ai = await askModel(SYSTEM_PROMPT, prompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const aiQuestions = ai.parsed && typeof ai.parsed === 'object' && !Array.isArray(ai.parsed)
       ? ai.parsed
       : null;

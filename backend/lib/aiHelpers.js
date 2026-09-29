@@ -24,7 +24,7 @@ async function callOpenRouter(systemPrompt, userPrompt, opts = {}) {
     body: JSON.stringify({
       model: opts.model || DEFAULT_MODEL,
       messages,
-      max_tokens: opts.max_tokens || 1500,
+      max_tokens: opts.max_tokens || 4000,
       temperature: opts.temperature ?? 0.7,
     }),
   });

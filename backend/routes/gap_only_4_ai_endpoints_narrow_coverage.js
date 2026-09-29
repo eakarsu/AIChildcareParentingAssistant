@@ -75,7 +75,7 @@ async function callOpenRouter(prompt, system) {
         { role: 'system', content: system },
         { role: 'user', content: prompt },
       ],
-      max_tokens: 1200,
+      max_tokens: Number(process.env.AI_MAX_TOKENS || 4000),
     }),
   });
   const json = await resp.json().catch(() => ({}));

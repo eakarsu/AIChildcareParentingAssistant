@@ -55,6 +55,125 @@ function displayScalar(value) {
   return String(value);
 }
 
+/** Keys the model wrappers use to carry their reply. */
+const WRAPPER_KEYS = ['raw', 'response', 'text', 'content', 'output', 'message', 'answer'];
+
+/**
+ * Models commonly reply with JSON inside a Markdown code fence, and the route
+ * stores that whole string under `raw`. Rendering it directly shows escaped
+ * JSON, which is exactly what users should never see.
+ *
+ * This strips the fence and parses the JSON so the real structure can be
+ * rendered. If it is genuinely prose, the prose is returned unchanged. If the
+ * reply was cut off mid-JSON, the largest valid prefix is salvaged so the user
+ * still sees useful content rather than a wall of escaped text.
+ */
+export function unwrapModelText(text) {
+  if (typeof text !== 'string') return text;
+  let value = text.trim();
+
+  // Strip a ```json ... ``` (or bare ```) fence if present. A truncated reply
+  // may have no closing fence, so also handle the opening-fence-only case.
+  const fence = value.match(/^```(?:json|JSON)?\s*\n([\s\S]*?)\n?```$/);
+  if (fence) value = fence[1].trim();
+  else if (value.startsWith('```')) {
+    value = value.replace(/^```(?:json|JSON)?[ \t]*\r?\n?/, '').replace(/```\s*$/, '').trim();
+  }
+
+  // Only attempt parsing when it plausibly is JSON.
+  if (/^[[{]/.test(value)) {
+    try {
+      return JSON.parse(value);
+    } catch {
+      const salvaged = salvageJson(value);
+      if (salvaged !== undefined) return salvaged;
+      // Last resort: if it is a JSON-looking blob we cannot recover, return the
+      // text so the caller can render it as prose rather than as JSON.
+      return value;
+    }
+  }
+  return value;
+}
+
+/**
+ * Recover as much structure as possible from JSON that was truncated.
+ * Closes any open strings, arrays and objects, then parses. Returns undefined
+ * when nothing usable can be recovered.
+ */
+function salvageJson(text) {
+  let inString = false;
+  let escaped = false;
+  const stack = [];
+  let lastSafe = 0;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' || ch === ']') {
+      stack.pop();
+      if (stack.length === 0) lastSafe = i + 1;
+    }
+  }
+
+  // Try the last complete top-level value first.
+  if (lastSafe > 0) {
+    try {
+      return JSON.parse(text.slice(0, lastSafe));
+    } catch {
+      /* keep trying */
+    }
+  }
+
+  // Otherwise close whatever is still open and try again.
+  let repaired = text;
+  if (inString) repaired += '"';
+  // Drop a trailing partial token such as a dangling comma or key.
+  repaired = repaired.replace(/[,\s]+$/, '');
+  for (let i = stack.length - 1; i >= 0; i -= 1) repaired += stack[i] === '{' ? '}' : ']';
+
+  try {
+    return JSON.parse(repaired);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Recursively unwrap wrapper objects so the meaningful payload surfaces.
+ * `{ analysis: { raw: "```json {...}```" } }` becomes the parsed object.
+ */
+function unwrapDeep(value, depth = 0) {
+  if (depth > 4) return value;
+  if (typeof value === 'string') return unwrapModelText(value);
+  if (Array.isArray(value)) return value.map((item) => unwrapDeep(item, depth + 1));
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value);
+    // A wrapper object whose only meaningful key is `raw`/`response`/`text`.
+    const wrapperKeys = keys.filter((k) => WRAPPER_KEYS.includes(k));
+    if (wrapperKeys.length === 1 && keys.length <= 2) {
+      const inner = unwrapDeep(value[wrapperKeys[0]], depth + 1);
+      // Keep the sibling metadata (if any) alongside the unwrapped payload.
+      const siblings = Object.fromEntries(Object.entries(value).filter(([k]) => k !== wrapperKeys[0]));
+      if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+        return { ...inner, ...siblings };
+      }
+      if (Object.keys(siblings).length === 0) return inner;
+      return { result: inner, ...siblings };
+    }
+    const out = {};
+    for (const [key, item] of Object.entries(value)) out[key] = unwrapDeep(item, depth + 1);
+    return out;
+  }
+  return value;
+}
+
 /** Keys whose values read best as prose rather than a bullet list. */
 const PROSE_KEYS = /summary|overview|answer|explanation|assessment|note|rationale|analysis|guidance|message/i;
 /** Keys that are structured lists of records. */
@@ -100,8 +219,12 @@ function ValueBlock({ value, name = '', depth = 0 }) {
   }
 
   if (isScalar(value)) {
-    if (typeof value === 'string' && PROSE_KEYS.test(name)) {
-      return <div className="ai-prose" dangerouslySetInnerHTML={{ __html: formatProse(value) }} />;
+    if (typeof value === 'string') {
+      // Prose keys, or any long/multi-line string, read better as prose.
+      const looksLikeProse = PROSE_KEYS.test(name) || value.length > 140 || /\n/.test(value);
+      if (looksLikeProse) {
+        return <div className="ai-prose" dangerouslySetInnerHTML={{ __html: formatProse(value) }} />;
+      }
     }
     return <p className="ai-value">{displayScalar(value)}</p>;
   }
@@ -143,10 +266,14 @@ function ValueBlock({ value, name = '', depth = 0 }) {
 export default function AIResultView({ result }) {
   if (!result) return null;
 
+  // Models often reply with fenced JSON stored under `raw`. Unwrap that first so
+  // the user sees the real content instead of escaped JSON.
+  const unwrapped = unwrapDeep(result);
+
   // The endpoints wrap answers as { analysis: {...} } or return facts + prose.
-  const body = result.analysis ?? result;
-  const facts = result.facts;
-  const advisory = result.advisory_text || result.disclaimer || result.note;
+  const body = unwrapped.analysis ?? unwrapped;
+  const facts = unwrapped.facts;
+  const advisory = unwrapped.advisory_text || result.advisory_text || result.disclaimer || unwrapped.note;
   const model = result.model || result.ai?.model;
   const providerUsed = result.provider_used ?? result.ai?.usedProvider;
 

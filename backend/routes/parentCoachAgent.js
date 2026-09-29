@@ -34,7 +34,7 @@ function callOpenRouter(prompt, systemPrompt) {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt },
       ],
-      max_tokens: 1500,
+      max_tokens: Number(process.env.AI_MAX_TOKENS || 4000),
     });
     const req = https.request({
       hostname: 'openrouter.ai',

@@ -23,7 +23,7 @@ const MEDICAL_DISCLAIMER =
 router.use(aiLimiter);
 
 async function runFeature(req, res, feature, prompt, extra = {}) {
-  const data = await callOpenRouter(SYSTEM_PROMPT, prompt, { max_tokens: 1500 });
+  const data = await callOpenRouter(SYSTEM_PROMPT, prompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
   const rawContent = data.choices[0].message.content;
   const analysis = parseAIJson(rawContent) || { raw: rawContent };
 
@@ -202,7 +202,7 @@ Important: Emphasize strongly that this is NOT a diagnosis and a pediatrician mu
 
 Return as JSON with keys: possible_conditions, home_care, emergency_signs, same_day_doctor, routine_doctor, comfort_measures, monitor_at_home`;
 
-    const data = await callOpenRouter(SYSTEM_PROMPT, prompt, { max_tokens: 1500 });
+    const data = await callOpenRouter(SYSTEM_PROMPT, prompt, { max_tokens: Number(process.env.AI_MAX_TOKENS || 4000) });
     const rawContent = data.choices[0].message.content;
     const analysis = parseAIJson(rawContent) || { raw: rawContent };
     const strongDisclaimer = '\n\n**IMPORTANT: This information is for general guidance only and does NOT constitute a medical diagnosis or treatment plan. Always consult your pediatrician or seek emergency care if you are concerned about your child\'s health. When in doubt, call your doctor.**';
