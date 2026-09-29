@@ -33,6 +33,7 @@ router.use(
     {
       required: ['name', 'date_of_birth'],
       searchFields: ['name', 'notes'],
+      userOwned: true,
     }
   )
 );
@@ -265,6 +266,36 @@ router.use('/playdates', createCrudRoutes('playdates',
 router.use('/shopping-lists', createCrudRoutes('shopping_lists',
   ['user_id', 'child_id', 'item_name', 'category', 'quantity', 'priority', 'is_purchased', 'estimated_cost', 'store', 'notes'],
   { required: ['item_name'], searchFields: ['item_name', 'category', 'store', 'notes'], userScoped: true }
+));
+
+// Potty Log
+router.use('/potty-log', createCrudRoutes('potty_log',
+  ['child_id', 'occurred_at', 'kind', 'location', 'notes'],
+  { required: ['child_id', 'kind'], searchFields: ['notes', 'location'] }
+));
+
+// School Records
+router.use('/school-records', createCrudRoutes('school_records',
+  ['child_id', 'institution', 'record_type', 'record_date', 'details', 'contact_name', 'contact_phone', 'notes'],
+  { required: ['child_id', 'institution', 'record_type'], searchFields: ['institution', 'details', 'notes'] }
+));
+
+// Insurance Policies
+router.use('/insurance-policies', createCrudRoutes('insurance_policies',
+  ['child_id', 'provider', 'policy_number', 'coverage_type', 'effective_date', 'expiry_date', 'document_url', 'notes'],
+  { required: ['child_id', 'provider'], searchFields: ['provider', 'policy_number', 'coverage_type'] }
+));
+
+// Feeding Plans
+router.use('/feeding-plans', createCrudRoutes('feeding_plans',
+  ['child_id', 'title', 'plan_date', 'meal_time', 'foods', 'portion', 'allergens', 'notes'],
+  { required: ['child_id', 'title'], searchFields: ['title', 'foods', 'notes'] }
+));
+
+// Immunization Schedule
+router.use('/immunization-schedule', createCrudRoutes('immunization_schedule',
+  ['child_id', 'vaccine_name', 'dose_number', 'due_date', 'administered_date', 'status', 'provider', 'notes'],
+  { required: ['child_id', 'vaccine_name', 'status'], searchFields: ['vaccine_name', 'provider', 'notes'] }
 ));
 
 // Export routes
