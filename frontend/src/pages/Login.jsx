@@ -2,11 +2,23 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Demo credentials shown by the "Auto Fill" button.
+ *
+ * These come from build-time VITE_* variables when the deployment provides
+ * them, and otherwise fall back to the seeded demo account so the button always
+ * fills something. The values are public by design — the demo login is meant to
+ * be usable by anyone evaluating the app.
+ */
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL || 'demo@childcare.com';
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD || 'password123';
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [filled, setFilled] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,8 +40,10 @@ export default function Login() {
   };
 
   const handleDemoLogin = () => {
-    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
-    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    setError('');
+    setFilled(true);
   };
 
   return (
@@ -94,11 +108,11 @@ export default function Login() {
           onClick={handleDemoLogin}
           disabled={loading}
         >
-          Auto Fill Demo Credentials
+          {filled ? '✓ Demo credentials filled' : 'Auto Fill Demo Credentials'}
         </button>
 
         <p className="login-footer-text">
-          Demo credentials: demo@childcare.com / password123
+          Demo credentials: {DEMO_EMAIL} / {DEMO_PASSWORD}
         </p>
 
         <p className="login-footer-text" style={{ marginTop: '1rem' }}>
