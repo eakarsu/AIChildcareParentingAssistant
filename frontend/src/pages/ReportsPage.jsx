@@ -80,6 +80,7 @@ export default function ReportsPage() {
     if (!childId || !['growth', 'sleep', 'feeding'].includes(tab)) return;
     setLoading(true);
     setError('');
+    setReport(null); // never let a previous tab's shape be rendered by this tab
     try {
       let data;
       if (tab === 'growth') data = await getGrowthReport(childId);
@@ -131,7 +132,7 @@ export default function ReportsPage() {
   }, [tab, loadExpenses, loadOverview]);
 
   const renderGrowth = () => {
-    if (!report) return null;
+    if (!report || !Array.isArray(report.series)) return null;
     const deltas = report.deltas || {};
     return (
       <>
@@ -157,7 +158,7 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {report.series.map((row) => (
+              {(report.series || []).map((row) => (
                 <tr key={row.id}>
                   <td>{row.date}</td>
                   <td>{fmt(row.heightCm)}</td>
@@ -196,7 +197,7 @@ export default function ReportsPage() {
   };
 
   const renderSleep = () => {
-    if (!report) return null;
+    if (!report || !Array.isArray(report.perDay)) return null;
     return (
       <>
         <InsufficientNote report={report} />
@@ -218,7 +219,7 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {report.perDay.map((row) => (
+              {(report.perDay || []).map((row) => (
                 <tr key={row.date}>
                   <td>{row.date}</td>
                   <td>{fmt(row.hours)}</td>
@@ -255,7 +256,7 @@ export default function ReportsPage() {
   };
 
   const renderFeeding = () => {
-    if (!report) return null;
+    if (!report || !Array.isArray(report.byMealType)) return null;
     return (
       <>
         <InsufficientNote report={report} />
@@ -278,7 +279,7 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody>
-                {report.byMealType.map((row) => (
+                {(report.byMealType || []).map((row) => (
                   <tr key={row.meal_type}>
                     <td>{row.meal_type}</td>
                     <td>{row.count}</td>
@@ -298,7 +299,7 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody>
-                {report.dailyTotals.map((row) => (
+                {(report.dailyTotals || []).map((row) => (
                   <tr key={row.date}>
                     <td>{row.date}</td>
                     <td>{row.count}</td>
@@ -354,7 +355,7 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody>
-                {expenses.byCategory.map((row) => (
+                {(expenses.byCategory || []).map((row) => (
                   <tr key={row.category}>
                     <td>{row.category}</td>
                     <td>{row.count}</td>
@@ -374,7 +375,7 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody>
-                {expenses.byMonth.map((row) => (
+                {(expenses.byMonth || []).map((row) => (
                   <tr key={row.month}>
                     <td>{row.month}</td>
                     <td>{row.count}</td>
@@ -405,7 +406,7 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {overview.perFeature.map((row) => (
+              {(overview.perFeature || []).map((row) => (
                 <tr key={row.feature}>
                   <td>{row.feature}</td>
                   <td>{row.table}</td>
