@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -40,10 +41,10 @@ function ProtectedRoute({ children }) {
 
 function AppLayout({ children }) {
   return (
-    <>
-      <Navbar />
+    <div className="app-shell">
+      <Sidebar />
       <main className="main-content">{children}</main>
-    </>
+    </div>
   );
 }
 
@@ -61,10 +62,6 @@ function AppRoutes() {
 
   return (
     <Routes>
-        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
-        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
-        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
-
       <Route
         path="/login"
         element={user ? <Navigate to="/" replace /> : <Login />}
@@ -123,6 +120,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/insights/timeline" element={<ProtectedRoute><AppLayout><TimelineView /></AppLayout></ProtectedRoute>} />
+      <Route path="/codex/custom-viz" element={<ProtectedRoute><AppLayout><CodexCustomVizFeature /></AppLayout></ProtectedRoute>} />
+      <Route path="/codex/operations" element={<ProtectedRoute><AppLayout><CodexOperationsFeature /></AppLayout></ProtectedRoute>} />
       <Route
         path="/custom-views"
         element={

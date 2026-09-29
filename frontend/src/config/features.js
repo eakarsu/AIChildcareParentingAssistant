@@ -512,3 +512,75 @@ export function getFeatureByPath(path) {
 export function getCRUDFeatures() {
   return features.filter((f) => !f.isSpecial);
 }
+
+/** Sidebar sections. Every feature appears exactly once, grouped for scanability. */
+export const SIDEBAR_SECTIONS = [
+  {
+    title: 'Overview',
+    items: [
+      { path: '/', label: 'Dashboard', icon: '🏠', exact: true },
+      { path: '/insights/timeline', label: 'Timeline', icon: '🗓️' },
+    ],
+  },
+  {
+    title: 'Child Records',
+    items: [
+      { path: '/children', label: 'Child Profiles', icon: '👶' },
+      { path: '/milestones', label: 'Milestones', icon: '🏆' },
+      { path: '/growth_records', label: 'Growth', icon: '📏' },
+      { path: '/vaccinations', label: 'Vaccinations', icon: '💉' },
+      { path: '/health_records', label: 'Health Records', icon: '🩺' },
+      { path: '/medications', label: 'Medications', icon: '💊' },
+      { path: '/allergy_logs', label: 'Allergy Log', icon: '⚠️' },
+      { path: '/tooth_records', label: 'Tooth Tracker', icon: '🦷' },
+    ],
+  },
+  {
+    title: 'Daily Care',
+    items: [
+      { path: '/sleep_records', label: 'Sleep Tracking', icon: '😴' },
+      { path: '/feeding_records', label: 'Feeding & Nutrition', icon: '🍽️' },
+      { path: '/diaper_records', label: 'Diaper Tracker', icon: '🧷' },
+      { path: '/daily_routines', label: 'Daily Routines', icon: '🔁' },
+      { path: '/journal_entries', label: 'Daily Journal', icon: '📔' },
+      { path: '/caregiver_logs', label: 'Caregiver Log', icon: '🧑‍🍼' },
+    ],
+  },
+  {
+    title: 'Plan & Track',
+    items: [
+      { path: '/activities', label: 'Activity Planning', icon: '🎨' },
+      { path: '/appointments', label: 'Appointments', icon: '📅' },
+      { path: '/playdates', label: 'Playdates', icon: '👫' },
+      { path: '/chores', label: 'Chore Chart', icon: '🧹' },
+      { path: '/photo_memories', label: 'Memory Book', icon: '📸' },
+      { path: '/learning_resources', label: 'Learning Resources', icon: '📚' },
+    ],
+  },
+  {
+    title: 'Household',
+    items: [
+      { path: '/expenses', label: 'Expenses', icon: '💰' },
+      { path: '/shopping_lists', label: 'Shopping List', icon: '🛒' },
+      { path: '/emergency_contacts', label: 'Emergency Contacts', icon: '🚑' },
+      { path: '/behavioral_notes', label: 'Behavioral Notes', icon: '🧠' },
+    ],
+  },
+  {
+    title: 'AI & Insights',
+    items: [
+      { path: '/ai-advisor', label: 'AI Advisor', icon: '🤖' },
+      { path: '/ai-tools', label: 'AI Tools', icon: '🧰' },
+      { path: '/ai-results', label: 'AI History', icon: '📜' },
+      { path: '/screen-time-balance', label: 'Screen Time', icon: '📱' },
+      { path: '/custom-views', label: 'Parent Views', icon: '👨‍👩‍👧' },
+      { path: '/codex/custom-viz', label: 'Custom Visuals', icon: '📊' },
+      { path: '/codex/operations', label: 'Operations', icon: '⚙️' },
+    ],
+  },
+];
+
+/** Flattened sidebar items, for search and counts. */
+export function allSidebarItems() {
+  return SIDEBAR_SECTIONS.flatMap((section) => section.items.map((item) => ({ ...item, section: section.title })));
+}

@@ -402,24 +402,44 @@ export default function FeaturePage() {
                     <td key={col}>{formatCellValue(col, item[col])}</td>
                   ))}
                   <td className="td-actions" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="btn btn-ghost btn-xs"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        const data = {};
-                        feature.fields.forEach((f) => {
-                          data[f.name] = item[f.name] ?? '';
-                        });
-                        setFormData(data);
-                        setFormErrors({});
-                        setEditMode(true);
-                        setShowForm(true);
-                        setShowDetail(false);
-                        setAiResult(null);
-                      }}
-                    >
-                      Edit
-                    </button>
+                    <div className="row-actions">
+                      <button
+                        className="btn btn-ghost btn-xs"
+                        onClick={() => openDetail(item)}
+                        title="View details"
+                      >
+                        View
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-xs"
+                        onClick={() => {
+                          setSelectedItem(item);
+                          const data = {};
+                          feature.fields.forEach((f) => {
+                            data[f.name] = item[f.name] ?? '';
+                          });
+                          setFormData(data);
+                          setFormErrors({});
+                          setEditMode(true);
+                          setShowForm(true);
+                          setShowDetail(false);
+                          setAiResult(null);
+                        }}
+                        title="Edit this record"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-xs btn-xs-danger"
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setShowDeleteConfirm(true);
+                        }}
+                        title="Delete this record"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -477,18 +497,18 @@ export default function FeaturePage() {
                 )}
               </div>
             </div>
-            <div className="modal-footer">
+            <div className="modal-footer modal-footer-actions">
               <button className="btn btn-primary" onClick={openEditForm}>
-                Edit
+                ✏️ Edit
               </button>
               <button
                 className="btn btn-danger"
                 onClick={() => setShowDeleteConfirm(true)}
               >
-                Delete
+                🗑️ Delete
               </button>
               <button className="btn btn-ghost" onClick={closeAll}>
-                Close
+                Cancel
               </button>
             </div>
           </div>
