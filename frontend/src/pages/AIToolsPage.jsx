@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { aiFeatures } from '../api';
+import AIResultView from '../components/AIResultView';
+import KeyValueResult from '../components/KeyValueResult';
 
+/**
+ * AI Parenting Tools.
+ *
+ * Every tool declares an `example` for each field — including optional ones —
+ * so "Fill example" can populate the whole form in one click and "Run analysis"
+ * works immediately. Examples are clearly fictional.
+ */
 const TOOLS = [
   {
     key: 'milestoneComparison',
     label: 'Milestone Comparison',
     description: 'Compare your child\'s milestones to CDC/WHO standards.',
     fields: [
-      { name: 'child_age_months', label: 'Child Age (months)', type: 'number' },
-      { name: 'milestones_achieved', label: 'Milestones Achieved (comma-separated)', type: 'list' },
+      { name: 'child_age_months', label: 'Child Age (months)', type: 'number', example: '24' },
+      { name: 'milestones_achieved', label: 'Milestones Achieved (comma-separated)', type: 'list', example: 'walks, runs, says 20 words, stacks 4 blocks, follows two-step instructions' },
     ],
   },
   {
@@ -16,7 +25,11 @@ const TOOLS = [
     label: 'Sleep Pattern Optimizer',
     description: 'Analyze sleep logs and get optimal bedtime suggestions.',
     fields: [
-      { name: 'sleep_logs', label: 'Sleep logs JSON array', type: 'json' },
+      { name: 'sleep_logs', label: 'Sleep logs JSON array', type: 'json', example: JSON.stringify([
+        { date: '2026-09-20', sleep_start: '20:00', sleep_end: '06:30', quality: 'Good' },
+        { date: '2026-09-21', sleep_start: '20:30', sleep_end: '05:45', quality: 'Fair' },
+        { date: '2026-09-22', sleep_start: '19:45', sleep_end: '06:15', quality: 'Good' },
+      ], null, 2) },
     ],
   },
   {
@@ -24,8 +37,12 @@ const TOOLS = [
     label: 'Nutrition Advisor',
     description: 'Check meal portions, allergens, balance.',
     fields: [
-      { name: 'child_age', label: 'Child Age (e.g. 18 months)', type: 'text' },
-      { name: 'meals', label: 'Meals JSON array', type: 'json' },
+      { name: 'child_age', label: 'Child Age (e.g. 18 months)', type: 'text', example: '18 months' },
+      { name: 'meals', label: 'Meals JSON array', type: 'json', example: JSON.stringify([
+        { meal: 'Breakfast', foods: ['oatmeal', 'banana', 'whole milk'], portion: 'small bowl' },
+        { meal: 'Lunch', foods: ['chicken', 'rice', 'peas'], portion: 'half plate' },
+        { meal: 'Snack', foods: ['yogurt', 'blueberries'], portion: 'small cup' },
+      ], null, 2) },
     ],
   },
   {
@@ -33,8 +50,11 @@ const TOOLS = [
     label: 'Behavior Pattern Analyzer',
     description: 'Detect triggers and suggest responses.',
     fields: [
-      { name: 'incidents', label: 'Incidents JSON array', type: 'json' },
-      { name: 'triggers', label: 'Triggers JSON array (optional)', type: 'json', optional: true },
+      { name: 'incidents', label: 'Incidents JSON array', type: 'json', example: JSON.stringify([
+        { date: '2026-09-18', behavior: 'tantrum at bedtime', context: 'after screen time', mood: 'Frustrated' },
+        { date: '2026-09-19', behavior: 'refused to share toys', context: 'playdate', mood: 'Angry' },
+      ], null, 2) },
+      { name: 'triggers', label: 'Triggers JSON array (optional)', type: 'json', optional: true, example: JSON.stringify(['screen time', 'transitions', 'hunger'], null, 2) },
     ],
   },
   {
@@ -42,8 +62,8 @@ const TOOLS = [
     label: 'Illness & Recovery Tracker',
     description: 'Symptom triage with home care suggestions (NOT diagnosis).',
     fields: [
-      { name: 'child_age', label: 'Child Age', type: 'text' },
-      { name: 'symptoms', label: 'Symptoms (comma-separated)', type: 'list' },
+      { name: 'child_age', label: 'Child Age', type: 'text', example: '3 years' },
+      { name: 'symptoms', label: 'Symptoms (comma-separated)', type: 'list', example: 'runny nose, mild cough, low fever, reduced appetite' },
     ],
   },
   {
@@ -51,7 +71,11 @@ const TOOLS = [
     label: 'Parental Stress Monitor',
     description: 'Mood logs analysis with self-care suggestions.',
     fields: [
-      { name: 'parent_mood_logs', label: 'Mood Logs JSON array', type: 'json' },
+      { name: 'parent_mood_logs', label: 'Mood Logs JSON array', type: 'json', example: JSON.stringify([
+        { date: '2026-09-20', mood: 'Tired', energy: 3, note: 'woke twice overnight' },
+        { date: '2026-09-21', mood: 'Anxious', energy: 4, note: 'work deadline' },
+        { date: '2026-09-22', mood: 'Calm', energy: 6, note: 'walk after lunch' },
+      ], null, 2) },
     ],
   },
   {
@@ -59,8 +83,12 @@ const TOOLS = [
     label: 'Screen Time Manager',
     description: 'Balanced screen-time recommendations.',
     fields: [
-      { name: 'child_age', label: 'Child Age', type: 'text' },
-      { name: 'daily_usage', label: 'Daily Usage JSON array', type: 'json' },
+      { name: 'child_age', label: 'Child Age', type: 'text', example: '5 years' },
+      { name: 'daily_usage', label: 'Daily Usage JSON array', type: 'json', example: JSON.stringify([
+        { date: '2026-09-20', minutes: 90, activity: 'cartoons' },
+        { date: '2026-09-21', minutes: 45, activity: 'learning app' },
+        { date: '2026-09-22', minutes: 120, activity: 'tablet games' },
+      ], null, 2) },
     ],
   },
   {
@@ -68,8 +96,13 @@ const TOOLS = [
     label: 'Sibling Harmony Coach',
     description: 'Strategies for multiple-child households.',
     fields: [
-      { name: 'children', label: 'Children JSON array', type: 'json' },
-      { name: 'recent_conflicts', label: 'Recent Conflicts JSON (optional)', type: 'json', optional: true },
+      { name: 'children', label: 'Children JSON array', type: 'json', example: JSON.stringify([
+        { name: 'Ava', age: 5 },
+        { name: 'Leo', age: 2 },
+      ], null, 2) },
+      { name: 'recent_conflicts', label: 'Recent Conflicts JSON (optional)', type: 'json', optional: true, example: JSON.stringify([
+        { date: '2026-09-21', conflict: 'competing for the same toy', resolution: 'adult redirected' },
+      ], null, 2) },
     ],
   },
   {
@@ -77,11 +110,21 @@ const TOOLS = [
     label: 'Health Trend Brief',
     description: 'Parental brief synthesizing growth + sleep + feeding + vaccinations (informational only).',
     fields: [
-      { name: 'child_age', label: 'Child Age (e.g. 18 months)', type: 'text' },
-      { name: 'growth', label: 'Growth records JSON (optional)', type: 'json', optional: true },
-      { name: 'sleep', label: 'Sleep records JSON (optional)', type: 'json', optional: true },
-      { name: 'feeding', label: 'Feeding records JSON (optional)', type: 'json', optional: true },
-      { name: 'vaccinations', label: 'Vaccinations JSON (optional)', type: 'json', optional: true },
+      { name: 'child_age', label: 'Child Age (e.g. 18 months)', type: 'text', example: '18 months' },
+      { name: 'growth', label: 'Growth records JSON (optional)', type: 'json', optional: true, example: JSON.stringify([
+        { date: '2026-03-01', height_cm: 78, weight_kg: 10.2 },
+        { date: '2026-09-01', height_cm: 83, weight_kg: 11.4 },
+      ], null, 2) },
+      { name: 'sleep', label: 'Sleep records JSON (optional)', type: 'json', optional: true, example: JSON.stringify([
+        { date: '2026-09-20', sleep_start: '20:00', sleep_end: '06:00', quality: 'Good' },
+      ], null, 2) },
+      { name: 'feeding', label: 'Feeding records JSON (optional)', type: 'json', optional: true, example: JSON.stringify([
+        { meal: 'Breakfast', foods: ['oatmeal', 'banana'] },
+        { meal: 'Lunch', foods: ['chicken', 'rice'] },
+      ], null, 2) },
+      { name: 'vaccinations', label: 'Vaccinations JSON (optional)', type: 'json', optional: true, example: JSON.stringify([
+        { vaccine_name: 'MMR', dose_number: 2, administered_date: '2026-06-15' },
+      ], null, 2) },
     ],
   },
   {
@@ -89,8 +132,8 @@ const TOOLS = [
     label: 'Sitter Handoff Summary',
     description: 'Deterministic child records plus an AI "what a sitter needs to know today" brief.',
     fields: [
-      { name: 'child_id', label: 'Child ID', type: 'number' },
-      { name: 'timeframe_hours', label: 'Timeframe (hours, optional)', type: 'number', optional: true },
+      { name: 'child_id', label: 'Child ID', type: 'number', example: '1' },
+      { name: 'timeframe_hours', label: 'Timeframe (hours, optional)', type: 'number', optional: true, example: '24' },
     ],
   },
   {
@@ -98,8 +141,8 @@ const TOOLS = [
     label: 'Milestone Gap Advisor',
     description: 'Age-appropriate expectations, gaps, next steps and pediatrician questions.',
     fields: [
-      { name: 'child_age_months', label: 'Child Age (months)', type: 'number' },
-      { name: 'milestones_achieved', label: 'Milestones Achieved (comma-separated)', type: 'list' },
+      { name: 'child_age_months', label: 'Child Age (months)', type: 'number', example: '24' },
+      { name: 'milestones_achieved', label: 'Milestones Achieved (comma-separated)', type: 'list', example: 'walks, runs, says 20 words, stacks 4 blocks' },
     ],
   },
   {
@@ -107,8 +150,14 @@ const TOOLS = [
     label: 'Sleep & Feeding Analyzer',
     description: 'Deterministic sleep/feeding aggregates plus an AI explanation (facts are computed in code).',
     fields: [
-      { name: 'sleep_logs', label: 'Sleep logs JSON array (optional)', type: 'json', optional: true },
-      { name: 'feeding_logs', label: 'Feeding logs JSON array (optional)', type: 'json', optional: true },
+      { name: 'sleep_logs', label: 'Sleep logs JSON array (optional)', type: 'json', optional: true, example: JSON.stringify([
+        { date: '2026-09-20', sleep_start: '20:00', sleep_end: '06:00', quality: 'Good' },
+        { date: '2026-09-21', sleep_start: '20:30', sleep_end: '05:30', quality: 'Fair' },
+      ], null, 2) },
+      { name: 'feeding_logs', label: 'Feeding logs JSON array (optional)', type: 'json', optional: true, example: JSON.stringify([
+        { meal: 'Breakfast', foods: ['oatmeal'], calories: 200 },
+        { meal: 'Lunch', foods: ['chicken', 'rice'], calories: 300 },
+      ], null, 2) },
     ],
   },
   {
@@ -116,8 +165,10 @@ const TOOLS = [
     label: 'Behavior Coach (Safe)',
     description: 'Safe, de-escalation-focused guidance. Punitive or unsafe advice is refused.',
     fields: [
-      { name: 'incidents', label: 'Incidents JSON array', type: 'json' },
-      { name: 'triggers', label: 'Triggers JSON array (optional)', type: 'json', optional: true },
+      { name: 'incidents', label: 'Incidents JSON array', type: 'json', example: JSON.stringify([
+        { date: '2026-09-18', behavior: 'tantrum at bedtime', context: 'after screen time', mood: 'Frustrated' },
+      ], null, 2) },
+      { name: 'triggers', label: 'Triggers JSON array (optional)', type: 'json', optional: true, example: JSON.stringify(['screen time', 'transitions'], null, 2) },
     ],
   },
   {
@@ -125,8 +176,12 @@ const TOOLS = [
     label: 'Growth Chart Analyzer',
     description: 'Deterministic growth-series summary; no percentiles unless a reference curve is supplied.',
     fields: [
-      { name: 'child_id', label: 'Child ID (optional)', type: 'number', optional: true },
-      { name: 'measurements', label: 'Measurements JSON array', type: 'json' },
+      { name: 'child_id', label: 'Child ID (optional)', type: 'number', optional: true, example: '1' },
+      { name: 'measurements', label: 'Measurements JSON array', type: 'json', example: JSON.stringify([
+        { date: '2026-03-01', height_cm: 78, weight_kg: 10.2, head_circumference_cm: 46 },
+        { date: '2026-06-01', height_cm: 80.5, weight_kg: 10.9, head_circumference_cm: 46.6 },
+        { date: '2026-09-01', height_cm: 83, weight_kg: 11.4, head_circumference_cm: 47.1 },
+      ], null, 2) },
     ],
   },
   {
@@ -134,20 +189,51 @@ const TOOLS = [
     label: 'Pediatrician Handoff PDF',
     description: 'Deterministic record summary as a downloadable PDF (or JSON if PDF is unavailable).',
     fields: [
-      { name: 'child_id', label: 'Child ID', type: 'number' },
-      { name: 'since', label: 'Since date (optional, YYYY-MM-DD)', type: 'text', optional: true },
+      { name: 'child_id', label: 'Child ID', type: 'number', example: '1' },
+      { name: 'since', label: 'Since date (optional, YYYY-MM-DD)', type: 'text', optional: true, example: '2026-01-01' },
     ],
   },
 ];
 
+/** Build the input state that fills every field, optional ones included. */
+export function exampleInputs(tool) {
+  const next = {};
+  for (const field of tool.fields) {
+    next[field.name] = field.example ?? '';
+  }
+  return next;
+}
+
 export default function AIToolsPage() {
   const [activeTool, setActiveTool] = useState(TOOLS[0].key);
-  const [inputs, setInputs] = useState({});
+  const [inputs, setInputs] = useState(() => exampleInputs(TOOLS[0]));
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const tool = TOOLS.find(t => t.key === activeTool);
+  const filledCount = useMemo(
+    () => tool.fields.filter(f => String(inputs[f.name] ?? '').trim() !== '').length,
+    [tool, inputs],
+  );
+
+  const selectTool = (key) => {
+    const next = TOOLS.find(t => t.key === key);
+    setActiveTool(key);
+    setInputs(exampleInputs(next)); // switching tools fills every field
+    setResult(null);
+    setError('');
+  };
+
+  const fillExample = () => {
+    setInputs(exampleInputs(tool));
+    setError('');
+  };
+
+  const clearFields = () => {
+    setInputs(Object.fromEntries(tool.fields.map(f => [f.name, ''])));
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -188,7 +274,7 @@ export default function AIToolsPage() {
           <button
             key={t.key}
             className={`btn ${activeTool === t.key ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => { setActiveTool(t.key); setInputs({}); setResult(null); setError(''); }}
+            onClick={() => selectTool(t.key)}
           >
             {t.label}
           </button>
@@ -196,12 +282,30 @@ export default function AIToolsPage() {
       </div>
 
       <div className="card" style={{ marginBottom: 24 }}>
-        <h2>{tool.label}</h2>
-        <p>{tool.description}</p>
+        <div className="tool-header">
+          <div>
+            <h2>{tool.label}</h2>
+            <p>{tool.description}</p>
+          </div>
+          <div className="row-actions">
+            <button type="button" className="btn btn-secondary btn-sm" onClick={fillExample}>
+              ✨ Fill example
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={clearFields}>
+              Clear fields
+            </button>
+          </div>
+        </div>
+        <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: 4 }}>
+          {filledCount} of {tool.fields.length} fields filled. Examples are fictional sample data, not your records.
+        </p>
         <form onSubmit={handleSubmit}>
           {tool.fields.map(f => (
             <div className="form-group" key={f.name}>
-              <label className="form-label">{f.label}</label>
+              <label className="form-label">
+                {f.label}
+                {f.optional && <span className="form-optional"> (optional)</span>}
+              </label>
               {f.type === 'json' ? (
                 <textarea
                   className="form-input form-textarea"
@@ -230,21 +334,7 @@ export default function AIToolsPage() {
 
       {result && (
         <div className="card">
-          <h3>Result</h3>
-          {result.disclaimer && <div className="alert alert-info">{result.disclaimer}</div>}
-          <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4, overflow: 'auto', maxHeight: 600 }}>
-            {JSON.stringify(result.analysis || result, null, 2)}
-          </pre>
-          {result.crisis_resources && (
-            <div className="alert alert-warning">
-              <strong>Crisis Resources:</strong>
-              <ul>
-                <li>National Crisis Line: {result.crisis_resources.national_crisis_line}</li>
-                <li>Postpartum Support International: {result.crisis_resources.postpartum_support_international}</li>
-              </ul>
-              <p>{result.crisis_resources.note}</p>
-            </div>
-          )}
+          <AIResultView result={result} />
         </div>
       )}
     </div>

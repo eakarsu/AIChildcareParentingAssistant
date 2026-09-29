@@ -46,7 +46,7 @@ setInterval(() => {
  */
 const aiLimiter = createLimiter({
   windowMs: 60 * 60 * 1000,
-  max: 20,
+  max: Number(process.env.AI_RATE_LIMIT_MAX || 20),
   keyFn: (req) => req.user?.id ? `ai:user:${req.user.id}` : null,
   message: 'AI rate limit exceeded: 20 calls per hour per user.',
 });

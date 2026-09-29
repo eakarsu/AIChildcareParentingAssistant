@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { aiResults } from '../api';
+import KeyValueResult from '../components/KeyValueResult';
 
 const FEATURE_OPTIONS = [
   '', 'insight', 'conversation-message',
@@ -100,13 +101,9 @@ export default function AIResultsPage() {
               <button className="btn btn-ghost" onClick={() => setSelected(null)}>X</button>
             </div>
             <h3>Input</h3>
-            <pre style={{ background: '#f5f5f5', padding: 12, borderRadius: 4, overflow: 'auto' }}>
-              {JSON.stringify(selected.input, null, 2)}
-            </pre>
+            <KeyValueResult result={selected.input} />
             <h3>Output</h3>
-            <pre style={{ background: '#f5f5f5', padding: 12, borderRadius: 4, overflow: 'auto' }}>
-              {JSON.stringify(selected.output, null, 2)}
-            </pre>
+            <KeyValueResult result={selected.output} />
           </div>
         </div>
       )}
