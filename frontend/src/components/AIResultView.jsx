@@ -1,4 +1,5 @@
 import React from 'react';
+import JsonReport from './JsonReport';
 
 /**
  * Professional renderer for AI results.
@@ -326,6 +327,13 @@ export default function AIResultView({ result }) {
           <div className="ai-prose" dangerouslySetInnerHTML={{ __html: formatProse(result.raw) }} />
         </section>
       )}
+
+      <details className="ai-section">
+        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Structured response (JSON)</summary>
+        <div style={{ marginTop: 12 }}>
+          <JsonReport data={result} title="AI result" model={model} tokens={result.usage || result.tokens_used} />
+        </div>
+      </details>
     </div>
   );
 }

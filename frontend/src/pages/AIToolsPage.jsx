@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { aiFeatures } from '../api';
+import React, { useEffect, useMemo, useState } from 'react';
+import { aiFeatures, fetchItems } from '../api';
 import AIResultView from '../components/AIResultView';
-import KeyValueResult from '../components/KeyValueResult';
 
 /**
  * AI Parenting Tools.
@@ -10,7 +9,7 @@ import KeyValueResult from '../components/KeyValueResult';
  * so "Fill example" can populate the whole form in one click and "Run analysis"
  * works immediately. Examples are clearly fictional.
  */
-const TOOLS = [
+export const TOOLS = [
   {
     key: 'milestoneComparison',
     label: 'Milestone Comparison',
@@ -132,7 +131,7 @@ const TOOLS = [
     label: 'Sitter Handoff Summary',
     description: 'Deterministic child records plus an AI "what a sitter needs to know today" brief.',
     fields: [
-      { name: 'child_id', label: 'Child ID', type: 'number', example: '1' },
+      { name: 'child_id', label: 'Child record', type: 'child', requiresExistingRecord: true },
       { name: 'timeframe_hours', label: 'Timeframe (hours, optional)', type: 'number', optional: true, example: '24' },
     ],
   },
@@ -176,7 +175,7 @@ const TOOLS = [
     label: 'Growth Chart Analyzer',
     description: 'Deterministic growth-series summary; no percentiles unless a reference curve is supplied.',
     fields: [
-      { name: 'child_id', label: 'Child ID (optional)', type: 'number', optional: true, example: '1' },
+      { name: 'child_id', label: 'Child record (optional)', type: 'child', optional: true, requiresExistingRecord: true },
       { name: 'measurements', label: 'Measurements JSON array', type: 'json', example: JSON.stringify([
         { date: '2026-03-01', height_cm: 78, weight_kg: 10.2, head_circumference_cm: 46 },
         { date: '2026-06-01', height_cm: 80.5, weight_kg: 10.9, head_circumference_cm: 46.6 },
@@ -189,22 +188,36 @@ const TOOLS = [
     label: 'Pediatrician Handoff PDF',
     description: 'Deterministic record summary as a downloadable PDF (or JSON if PDF is unavailable).',
     fields: [
-      { name: 'child_id', label: 'Child ID', type: 'number', example: '1' },
+      { name: 'child_id', label: 'Child record', type: 'child', requiresExistingRecord: true },
       { name: 'since', label: 'Since date (optional, YYYY-MM-DD)', type: 'text', optional: true, example: '2026-01-01' },
     ],
   },
 ];
 
 /** Build the input state that fills every field, optional ones included. */
-export function exampleInputs(tool) {
-  const next = {};
-  for (const field of tool.fields) {
-    next[field.name] = field.example ?? '';
-  }
-  return next;
+export function exampleInputs(tool, variant = 0, children = [], current = {}) {
+  return Object.fromEntries(tool.fields.map(field => {
+    if (field.requiresExistingRecord) {
+      const selected = children.find(child => String(child.id) === String(current[field.name])) || children[variant % Math.max(children.length, 1)];
+      return [field.name, selected ? String(selected.id) : ''];
+    }
+    if (field.type === 'json') {
+      const value = JSON.parse(field.example);
+      return [field.name, JSON.stringify(Array.isArray(value) && variant > 0 ? value.slice(variant === 1 ? 0 : -1, variant === 1 ? 1 : undefined) : value, null, 2)];
+    }
+    if (field.type === 'number') return [field.name, Number(field.example) + variant * (field.name === 'timeframe_hours' ? 12 : 3)];
+    return [field.name, field.example];
+  }));
 }
 
 export default function AIToolsPage() {
+  const [children, setChildren] = useState([]);
+  const [childrenError, setChildrenError] = useState('');
+  useEffect(() => {
+    let alive = true;
+    fetchItems('/children', { limit: 200 }).then(response => { if (alive) setChildren(Array.isArray(response) ? response : response.data || []); }).catch(() => { if (alive) setChildrenError('Your child records could not be loaded. Reload them before generating a handoff.'); });
+    return () => { alive = false; };
+  }, []);
   const [activeTool, setActiveTool] = useState(TOOLS[0].key);
   const [inputs, setInputs] = useState(() => exampleInputs(TOOLS[0]));
   const [result, setResult] = useState(null);
@@ -220,13 +233,13 @@ export default function AIToolsPage() {
   const selectTool = (key) => {
     const next = TOOLS.find(t => t.key === key);
     setActiveTool(key);
-    setInputs(exampleInputs(next)); // switching tools fills every field
+    setInputs(exampleInputs(next, 0, children, inputs)); // fill the complete selected tool, retaining real references
     setResult(null);
     setError('');
   };
 
-  const fillExample = () => {
-    setInputs(exampleInputs(tool));
+  const fillExample = (variant) => {
+    setInputs(exampleInputs(tool, variant, children, inputs));
     setError('');
   };
 
@@ -242,13 +255,13 @@ export default function AIToolsPage() {
       const payload = {};
       for (const f of tool.fields) {
         const v = inputs[f.name];
-        if (!v && !f.optional) continue;
+        if ((v === '' || v === undefined || v === null) && !f.optional) continue;
         if (f.type === 'json' && v) {
           try { payload[f.name] = JSON.parse(v); }
           catch { throw new Error(`Invalid JSON in ${f.label}`); }
         } else if (f.type === 'list' && v) {
           payload[f.name] = String(v).split(',').map(s => s.trim()).filter(Boolean);
-        } else if (f.type === 'number' && v !== undefined && v !== '') {
+        } else if ((f.type === 'number' || f.type === 'child') && v !== undefined && v !== '') {
           payload[f.name] = Number(v);
         } else if (v) {
           payload[f.name] = v;
@@ -292,9 +305,7 @@ export default function AIToolsPage() {
             <p>{tool.description}</p>
           </div>
           <div className="row-actions">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={fillExample}>
-              ✨ Fill example
-            </button>
+            {['Standard example', 'Focused review', 'Latest observations'].map((label, index) => <button key={label} type="button" className="btn btn-secondary btn-sm" disabled={loading} onClick={() => fillExample(index)}>Demo AI · {label}</button>)}
             <button type="button" className="btn btn-ghost btn-sm" onClick={clearFields}>
               Clear fields
             </button>
@@ -303,32 +314,38 @@ export default function AIToolsPage() {
         <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: 4 }}>
           {filledCount} of {tool.fields.length} fields filled. Examples are fictional sample data, not your records.
         </p>
+        <p className="text-muted" style={{ fontSize: '0.85rem' }}>Each Demo AI button fills required and optional inputs. Fictional examples are for review; generating is a separate action.</p>
+        {tool.fields.some(field => field.requiresExistingRecord) && <p role="status">{childrenError || (children.length ? 'Record-linked examples use a real child from your authenticated account and preserve the current selection.' : 'Add or load an actual child record to complete record-linked examples. Presets never invent child IDs.')}</p>}
         <form onSubmit={handleSubmit}>
           {tool.fields.map(f => (
             <div className="form-group" key={f.name}>
-              <label className="form-label">
+              <label className="form-label" htmlFor={`${tool.key}-${f.name}`}>
                 {f.label}
                 {f.optional && <span className="form-optional"> (optional)</span>}
               </label>
-              {f.type === 'json' ? (
+              {f.type === 'child' ? <select data-ai-field={f.name} id={`${tool.key}-${f.name}`} className="form-input" value={inputs[f.name] ?? ''} onChange={event => setInputs({ ...inputs, [f.name]: event.target.value })} required={!f.optional}><option value="">Select an actual child…</option>{children.map(child => <option key={child.id} value={child.id}>{child.name || `Child #${child.id}`}</option>)}</select> : f.type === 'json' ? (
                 <textarea
+                  data-ai-field={f.name}
+                  id={`${tool.key}-${f.name}`}
                   className="form-input form-textarea"
                   rows={6}
                   placeholder={f.type === 'json' ? '[]' : ''}
-                  value={inputs[f.name] || ''}
+                  value={inputs[f.name] ?? ''}
                   onChange={(e) => setInputs({ ...inputs, [f.name]: e.target.value })}
                 />
               ) : (
                 <input
+                  data-ai-field={f.name}
+                  id={`${tool.key}-${f.name}`}
                   className="form-input"
                   type={f.type === 'number' ? 'number' : 'text'}
-                  value={inputs[f.name] || ''}
+                  value={inputs[f.name] ?? ''}
                   onChange={(e) => setInputs({ ...inputs, [f.name]: e.target.value })}
                 />
               )}
             </div>
           ))}
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading || tool.fields.some(field => field.requiresExistingRecord && !field.optional && !inputs[field.name])}>
             {loading ? 'Analyzing...' : 'Run Analysis'}
           </button>
         </form>

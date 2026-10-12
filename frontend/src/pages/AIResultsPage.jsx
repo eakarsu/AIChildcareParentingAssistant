@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { aiResults } from '../api';
+import AIResultView from '../components/AIResultView';
 import KeyValueResult from '../components/KeyValueResult';
 
 const FEATURE_OPTIONS = [
@@ -7,6 +8,23 @@ const FEATURE_OPTIONS = [
   'milestone-comparison', 'sleep-optimizer', 'nutrition-advisor', 'behavior-analyzer',
   'illness-tracker', 'stress-monitor', 'screen-time-manager', 'sibling-harmony',
 ];
+
+function parseStored(value) {
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+function savedAIResult(row) {
+  const output = parseStored(row.output);
+  if (output && typeof output === 'object' && !Array.isArray(output)) {
+    return { ...output, model: output.model || row.model };
+  }
+  return { analysis: output, model: row.model };
+}
 
 export default function AIResultsPage() {
   const [results, setResults] = useState([]);
@@ -101,9 +119,9 @@ export default function AIResultsPage() {
               <button className="btn btn-ghost" onClick={() => setSelected(null)}>X</button>
             </div>
             <h3>Input</h3>
-            <KeyValueResult result={selected.input} />
-            <h3>Output</h3>
-            <KeyValueResult result={selected.output} />
+            <KeyValueResult result={parseStored(selected.input)} />
+            <h3>AI output</h3>
+            <AIResultView result={savedAIResult(selected)} />
           </div>
         </div>
       )}

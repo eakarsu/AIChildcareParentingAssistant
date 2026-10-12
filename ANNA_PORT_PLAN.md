@@ -256,7 +256,7 @@ business days; expect one round of fixes.
 | Legacy 256 KiB bucket cap on fallback path | Low–Medium | Stay on the APS path; keep documents small and paginate |
 | Review rejects "not AI-native" | Low | The handoff summary is genuinely AI-core |
 | Grant is **not** guaranteed by invitation | High | Isabel states this explicitly; eligibility is assessed after publish |
-| "70% token revenue share" appears in the email but **not** in the published program rules | Medium | **Ask for it in writing before porting** |
+| Revenue share differs from the grant | Medium | Anna's current published FAQ says Builders earn 70% of eligible paid usage profit, separately from monthly grants; payout requests begin at a $50 eligible balance. Verify the current terms in the Developer Console before relying on projected revenue. |
 | "Official Program Rules" link | Medium | Ask for the direct, stable URL before committing |
 | Unpaid-grant forfeiture on disqualification | Medium | Read §10 of the program rules carefully before submitting |
 

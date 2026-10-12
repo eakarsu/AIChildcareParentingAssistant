@@ -22,10 +22,18 @@ const ADVISORY =
   'Informational only: this supports caregiving decisions and is not medical ' +
   'advice, diagnosis, or treatment. Always consult a qualified pediatrician.';
 
+const HANDOFF_PRESETS = [
+  { label: 'Today’s routine', hours: 24 },
+  { label: 'Weekend handoff', hours: 48 },
+  { label: 'Extended care', hours: 72 },
+];
+
 const SYSTEM_PROMPT =
   'You are an expert pediatric advisor and child development specialist. Provide helpful, ' +
   'evidence-based advice. Be warm and professional. Always recommend consulting a pediatrician ' +
   'for medical concerns.';
+
+let anna = null;
 
 // ─── deterministic helpers (ported unchanged from the backend) ───────────────
 
@@ -246,6 +254,25 @@ function App() {
       {tab === 'handoff' && (
         <>
           <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+            <div style={{ marginBottom: 10 }}>
+              <strong style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>Demo AI · fill all handoff fields</strong>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {HANDOFF_PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setTimeframe(preset.hours)}
+                    style={{ padding: '6px 10px' }}
+                  >
+                    Demo AI · {preset.label}
+                  </button>
+                ))}
+              </div>
+              <span style={{ display: 'block', color: '#666', fontSize: 12, marginTop: 6 }}>
+                Each preset fills the complete editable handoff request. Saved profile and record sources are preserved.
+              </span>
+            </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <button onClick={run} disabled={busy} style={{ padding: '8px 16px', fontWeight: 600 }}>
                 {busy ? 'Working…' : '✨ Generate handoff'}
@@ -253,6 +280,7 @@ function App() {
               <label style={{ fontSize: 12, color: '#555' }}>
                 Timeframe (hours)
                 <input
+                  data-ai-field="timeframe"
                   type="number"
                   min={1}
                   value={timeframe}
@@ -316,7 +344,7 @@ function App() {
 
 async function main() {
   const rootEl = document.getElementById('root') ?? document.body;
-  let anna = null;
+  anna = null;
 
   try {
     anna = await AnnaAppRuntime.connect();

@@ -3,15 +3,13 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 /**
- * Demo credentials shown by the "Auto Fill" button.
- *
- * These come from build-time VITE_* variables when the deployment provides
- * them, and otherwise fall back to the seeded demo account so the button always
- * fills something. The values are public by design — the demo login is meant to
- * be usable by anyone evaluating the app.
+ * Demo credentials are injected by start.sh only for a configured, non-production
+ * demo environment. They are never guessed or displayed in the page.
  */
-const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL || 'demo@childcare.com';
-const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD || 'password123';
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL || '';
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD || '';
+const DEMO_AVAILABLE = import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true'
+  && Boolean(DEMO_EMAIL && DEMO_PASSWORD);
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -39,7 +37,8 @@ export default function Login() {
     }
   };
 
-  const handleDemoLogin = () => {
+  const fillDemoCredentials = () => {
+    if (!DEMO_AVAILABLE) return;
     setEmail(DEMO_EMAIL);
     setPassword(DEMO_PASSWORD);
     setError('');
@@ -105,14 +104,16 @@ export default function Login() {
         <button
           type="button"
           className="btn btn-secondary btn-block"
-          onClick={handleDemoLogin}
-          disabled={loading}
+          onClick={fillDemoCredentials}
+          disabled={loading || !DEMO_AVAILABLE}
         >
-          {filled ? '✓ Demo credentials filled' : 'Auto Fill Demo Credentials'}
+          {filled ? '✓ Demo credentials filled' : 'Fill Demo Credentials'}
         </button>
 
         <p className="login-footer-text">
-          Demo credentials: {DEMO_EMAIL} / {DEMO_PASSWORD}
+          {DEMO_AVAILABLE
+            ? 'Uses the existing local demo account configured for this environment.'
+            : 'Demo credential filling is unavailable in this build.'}
         </p>
 
         <p className="login-footer-text" style={{ marginTop: '1rem' }}>

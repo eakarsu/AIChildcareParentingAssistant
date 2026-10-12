@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import NativeAIControls from '../components/NativeAIControls.jsx';
 import { fetchItems, getAIInsight } from '../api';
 import AIOutput from '../components/AIOutput';
 
@@ -10,6 +11,24 @@ const TOPICS = [
   { value: 'health', label: 'Health & Wellness' },
   { value: 'activities', label: 'Activities & Play' },
   { value: 'general', label: 'General Parenting' },
+];
+
+const ADVISOR_PRESETS = [
+  {
+    name: 'Bedtime routine',
+    topic: 'sleep',
+    question: 'Create a practical one-week bedtime routine for a toddler who needs 30–45 minutes to settle. Include steps, timing, what to track, and signs that warrant a pediatrician conversation.',
+  },
+  {
+    name: 'Balanced meals',
+    topic: 'nutrition',
+    question: 'Suggest a seven-day approach to balanced toddler meals and snacks, including portion guidance, allergen awareness, substitutions, and questions to discuss with a pediatrician.',
+  },
+  {
+    name: 'Calm transitions',
+    topic: 'behavior',
+    question: 'Give a calm, non-punitive plan for difficult transitions. Include scripts for caregivers, prevention steps, what to record, and when professional support may help.',
+  },
 ];
 
 export default function AIAdvisorPage() {
@@ -49,7 +68,7 @@ export default function AIAdvisorPage() {
           question,
           topic,
           childName: child?.name || 'General',
-          response: data.response || data.message || JSON.stringify(data),
+          response: data.response ?? data.message ?? data,
           model: data.model,
           usage: data.usage,
         },
@@ -75,8 +94,28 @@ export default function AIAdvisorPage() {
     }
   };
 
+  const fillPreset = (preset, variant) => {
+    const selectedExists = children.some((child) => String(child.id) === String(selectedChild));
+    const child = selectedExists ? selectedChild : children[variant % Math.max(children.length, 1)]?.id;
+    setSelectedChild(child ? String(child) : '');
+    setTopic(preset.topic);
+    setQuestion(preset.question);
+    return {
+      filled: child ? 3 : 2,
+      manual: child ? [] : ['Child (add or load an actual record)'],
+    };
+  };
+
   return (
-    <div className="container">
+    <NativeAIControls
+      busy={loading}
+      context="AI Parenting Advisor"
+      presets={ADVISOR_PRESETS.map((preset, variant) => ({
+        name: preset.name,
+        fill: () => fillPreset(preset, variant),
+      }))}
+    >
+      <div className="container">
       <div className="page-header">
         <h1 className="page-title">
           <span className="page-icon">🤖</span>
@@ -92,7 +131,7 @@ export default function AIAdvisorPage() {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">Child</label>
-              <select
+              <select data-ai-field={"selectedChild"}
                 className="form-input"
                 value={selectedChild}
                 onChange={(e) => setSelectedChild(e.target.value)}
@@ -108,7 +147,7 @@ export default function AIAdvisorPage() {
 
             <div className="form-group">
               <label className="form-label">Topic</label>
-              <select
+              <select data-ai-field={"topic"}
                 className="form-input"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
@@ -123,7 +162,7 @@ export default function AIAdvisorPage() {
 
             <div className="form-group">
               <label className="form-label">Your Question</label>
-              <textarea
+              <textarea data-ai-field={"question"}
                 className="form-input form-textarea"
                 rows={4}
                 placeholder="Ask anything about parenting, child development, health, nutrition..."
@@ -187,6 +226,7 @@ export default function AIAdvisorPage() {
           ))}
         </div>
       </div>
-    </div>
+      </div>
+    </NativeAIControls>
   );
 }
