@@ -70,6 +70,7 @@ app.use('/api/pediatric-network', require('./routes/pediatricNetworkSaas'));
 app.use('/api/screen-time-balance', require('./routes/screenTimeBalance'));
 
 // Deterministic reports + global search — BEFORE 404
+app.use('/api/feature-pack', require('./routes/featurePack')());
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/search', require('./routes/search'));
 

@@ -8,8 +8,7 @@ import { useAuth } from '../context/AuthContext';
  */
 const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL || '';
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD || '';
-const DEMO_AVAILABLE = import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true'
-  && Boolean(DEMO_EMAIL && DEMO_PASSWORD);
+const DEMO_AVAILABLE = Boolean(DEMO_EMAIL && DEMO_PASSWORD);
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -37,12 +36,26 @@ export default function Login() {
     }
   };
 
-  const fillDemoCredentials = () => {
-    if (!DEMO_AVAILABLE) return;
-    setEmail(DEMO_EMAIL);
-    setPassword(DEMO_PASSWORD);
-    setError('');
-    setFilled(true);
+  const fillDemoCredentials = async () => {
+    if (DEMO_AVAILABLE) {
+      setEmail(DEMO_EMAIL);
+      setPassword(DEMO_PASSWORD);
+      setError('');
+      setFilled(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/demo-credentials', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (data && data.email && data.password) {
+        setEmail(data.email);
+        setPassword(data.password);
+        setError('');
+        setFilled(true);
+        return;
+      }
+    } catch {}
+    setError('Demo credentials are not configured for this environment.');
   };
 
   return (
@@ -105,9 +118,10 @@ export default function Login() {
           type="button"
           className="btn btn-secondary btn-block"
           onClick={fillDemoCredentials}
-          disabled={loading || !DEMO_AVAILABLE}
+          disabled={loading}
+          aria-label="Fill demo credentials"
         >
-          {filled ? '✓ Demo credentials filled' : 'Fill Demo Credentials'}
+          Fill demo credentials
         </button>
 
         <p className="login-footer-text">
